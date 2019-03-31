@@ -41,5 +41,9 @@
     <string name="address_not_found">Address not found</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
+    <string name="title_activity_main2">Main2Activity</string>
+    <string name="set_quantity">Set Quantity</string>
+    <string name="set_medication">Set Medication</string>
+    <string name="enter_ordinance">Enter Ordinance</string>
 
 </resources>

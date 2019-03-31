@@ -73,12 +73,14 @@ public class SingUPActivity extends AppCompatActivity {
                                 mProgressDialog.dismiss();
                                 if (task.isSuccessful()) {
                                     mFirebaseUser = mFirebaseAuth.getCurrentUser();
-                                    mReference.child("First Name").setValue(editTextFirstName.getText().toString());
-                                    mReference.child("Family Name").setValue(editTextFamilyName.getText().toString());
-                                    mReference.child("Phone").setValue(editTextPhone.getText().toString());
-                                    mReference.child("Login ID").setValue(mFirebaseUser.getUid());
+                                    if (mFirebaseUser != null){
+                                    mReference.child("cl"+mFirebaseUser.getUid()).child("First Name").setValue(editTextFirstName.getText().toString());
+                                    mReference.child("cl"+mFirebaseUser.getUid()).child("Family Name").setValue(editTextFamilyName.getText().toString());
+                                    mReference.child("cl"+mFirebaseUser.getUid()).child("Phone").setValue(editTextPhone.getText().toString());
+                                    mReference.child("cl"+mFirebaseUser.getUid()).child("Login ID").setValue(mFirebaseUser.getUid());
                                     Toast.makeText(getApplicationContext(), getString(R.string.sing_up_successful), Toast.LENGTH_SHORT).show();
                                     startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                                    }
                                 } else {
                                     Toast.makeText(getApplicationContext(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
                                 }
@@ -90,7 +92,7 @@ public class SingUPActivity extends AppCompatActivity {
 
     public void initializeUI() {
         mFirebaseAuth = FirebaseAuth.getInstance();
-        mReference = FirebaseDatabase.getInstance().getReference().child("Client").push();
+        mReference = FirebaseDatabase.getInstance().getReference().child("Client");
 
         editTextFirstName = findViewById(R.id.firstname);
         editTextFamilyName = findViewById(R.id.familyname);

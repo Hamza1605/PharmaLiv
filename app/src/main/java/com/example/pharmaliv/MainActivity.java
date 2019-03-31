@@ -16,16 +16,24 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    FirebaseUser user;
+    TextView userName;
+    TextView userEmail;
+    FirebaseAuth.AuthStateListener stateListener;
+    FirebaseAuth auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,27 +42,51 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final TextView userName = findViewById(R.id.user_name);
-        TextView userEmail = findViewById(R.id.user_email);
-        userEmail.setText(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail());
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("Client").push();
-        reference.addValueEventListener(new ValueEventListener() {
+        auth = FirebaseAuth.getInstance();
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        View view = navigationView.getHeaderView(0);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        userName = view.findViewById(R.id.user_name);
+        userEmail = view.findViewById(R.id.user_email);
+
+        stateListener = new FirebaseAuth.AuthStateListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (Objects.equals(dataSnapshot.child("Login ID").getValue(String.class),
-                        Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid())){
-                    String s1 = dataSnapshot.child("Family Name").getValue(String.class);
-                    String s2 = dataSnapshot.child("First Name").getValue(String.class);
-                    String s = s1 + " " + s2;
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                user = auth.getCurrentUser();
+                if (user != null) {
+                    //Toast.makeText(MainActivity.this, "ss", Toast.LENGTH_SHORT).show();
+                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference("cl"+user.getUid());
+                    final StringBuilder s = new StringBuilder();
+                    reference.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if ((dataSnapshot != null) && (Objects.equals(dataSnapshot.child("Login_ID").getValue(String.class),
+                                    user.getUid()))){
+                                s.append(dataSnapshot.child("Family_Name").getValue(String.class));
+                                s.append(" ");
+                                s.append(dataSnapshot.child("First_Name").getValue(String.class));
+                            }
+                        }
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
                     userName.setText(s);
+                    userEmail.setText(user.getEmail());
+                } else {
+                    startActivity(new Intent(getApplicationContext(), SingINActivity.class));
                 }
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+        };
 
         Button buttonScan = findViewById(R.id.scan_ordinance);
         buttonScan.setOnClickListener(new View.OnClickListener() {
@@ -72,16 +104,25 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
+        Button buttonEnter = findViewById(R.id.enter_ordinance);
+        buttonEnter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getApplicationContext(), OrdinanceActivity.class));
+            }
+        });
+    }
 
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+    @Override
+    protected void onStart() {
+        super.onStart();
+        auth.addAuthStateListener(stateListener);
+    }
 
-
+    @Override
+    protected void onStop() {
+        super.onStop();
+        auth.removeAuthStateListener(stateListener);
     }
 
     @Override
@@ -105,15 +146,19 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
 
-        switch (item.getItemId()){
-            case R.id.nav_orders :
+        switch (item.getItemId()) {
+            case R.id.nav_orders:
                 break;
-            case R.id.nav_address :
+            case R.id.nav_address:
                 break;
-            case R.id.nav_search :
+            case R.id.nav_search:
                 startActivity(new Intent(getApplicationContext(), CategoriesActivity.class));
                 break;
-            case R.id.nav_logout :
+            case R.id.nav_logout:
+                if (user != null){
+                    FirebaseAuth.getInstance().signOut();
+                    startActivity(new Intent(getApplicationContext(), SingINActivity.class));
+                }
                 break;
         }
 

@@ -21,13 +21,12 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning"
         tools:remove="android:appComponentFactory">
-        <activity android:name=".SingINActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <activity
+            android:name=".OrdinanceActivity"
+            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity
+            android:name=".SingINActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".SingUPActivity"
             android:theme="@style/AppTheme.NoActionBar" />
@@ -39,7 +38,13 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/AppTheme" />

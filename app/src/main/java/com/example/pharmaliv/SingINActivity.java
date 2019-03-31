@@ -72,23 +72,6 @@ public class SingINActivity extends AppCompatActivity {
             }
         });
     }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-       // if (mFirebaseUser != null)
-         //   startActivity(new Intent(this, MainActivity.class));
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mFirebaseUser = mFirebaseAuth.getCurrentUser();
-       // if (mFirebaseUser != null)
-         //   startActivity(new Intent(this, MainActivity.class));
-    }
-
     private void initializeUI() {
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
