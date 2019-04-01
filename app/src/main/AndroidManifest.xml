@@ -22,13 +22,17 @@
         tools:ignore="GoogleAppIndexingWarning"
         tools:remove="android:appComponentFactory">
         <activity
+            android:name=".SingUPActivity"
+            android:label="@string/title_activity_sing_up"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
             android:name=".OrdinanceActivity"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar1" />
         <activity
             android:name=".SingINActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".SingUPActivity"
+            android:name=".SingUPActivity1"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".CategoriesActivity"

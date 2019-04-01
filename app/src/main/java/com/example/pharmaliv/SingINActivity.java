@@ -68,14 +68,14 @@ public class SingINActivity extends AppCompatActivity {
         buttonSingUP.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(), SingUPActivity.class));
+                startActivity(new Intent(getApplicationContext(), SingUPActivity1.class));
             }
         });
     }
     private void initializeUI() {
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        editTextEmail = findViewById(R.id.email);
+        editTextEmail = findViewById(R.id.ph_email);
         editTextPassword = findViewById(R.id.password);
         buttonSingIN = findViewById(R.id.sign_in);
         buttonSingUP = findViewById(R.id.sing_up);

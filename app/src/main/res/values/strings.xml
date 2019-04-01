@@ -45,5 +45,23 @@
     <string name="set_quantity">Set Quantity</string>
     <string name="set_medication">Set Medication</string>
     <string name="enter_ordinance">Enter Ordinance</string>
+    <string name="title_activity_sing_up">SingUP</string>
+    <string name="client">Client</string>
+    <string name="pharmacy">Pharmacy</string>
+    <string name="delivery">Delivery Man</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="pharmacy_name">Pharmacy Name</string>
+    <string name="latitude">Latitude</string>
+    <string name="langtitude">Langtitude</string>
+    <string name="get_location">get Location</string>
+    <string name="no_name">Pharmacy name is empty</string>
+    <string name="no_lat">Latitude is empty</string>
+    <string name="no_lang">Langitude is empty</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+
 
 </resources>

@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +26,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -34,6 +37,7 @@ public class OrdinanceActivity extends AppCompatActivity {
     MedicationAdapter adapter;
     AutoCompleteTextView autoCompletemedName;
     EditText editTextmedQuantity;
+    ListView medications;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +58,7 @@ public class OrdinanceActivity extends AppCompatActivity {
         });
         medicationList = new ArrayList<>();
         adapter = new MedicationAdapter(this, medicationList);
-        final ListView medications = findViewById(R.id.medicationsListView);
+        medications = findViewById(R.id.medicationsListView);
         autoCompletemedName = findViewById(R.id.medname);
         editTextmedQuantity = findViewById(R.id.medqauntity);
         Button buttonAdd = findViewById(R.id.add);
@@ -66,24 +70,27 @@ public class OrdinanceActivity extends AppCompatActivity {
             @Override
             public void onItemClick(final AdapterView<?> parent, View view, final int position, long id) {
                 TextView name = view.findViewById(android.R.id.text1);
-                TextView quntity = view.findViewById(android.R.id.text2);
-                AlertDialog.Builder dialog = new AlertDialog.Builder(getApplicationContext())
-                        .setTitle("Please select action.")
-                        .setMessage(name.getText().toString()+": "+quntity.getText().toString())
+                TextView quantity1 = view.findViewById(android.R.id.text2);
+                final AlertDialog.Builder dialog = new AlertDialog.Builder(OrdinanceActivity.this);
+                        dialog.setTitle("Please select action.")
+                        .setMessage(name.getText().toString()+": "+quantity1.getText().toString())
                         .setPositiveButton("Edit", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                final TextView name = new EditText(getApplicationContext());
-                                final TextView quntity = new EditText(getApplicationContext());
-                                AlertDialog.Builder editdialog = new AlertDialog.Builder(getApplicationContext())
+                                final TextView quantity = new EditText(OrdinanceActivity.this);
+                                final AlertDialog.Builder editDialog = new AlertDialog.Builder(OrdinanceActivity.this)
                                         .setTitle("Edit")
-                                        .setView(name)
-                                        .setView(quntity)
+                                        .setView(quantity)
                                         .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
-                                                medicationList.set(position, new Medication(name.getText().toString(),
-                                                        quntity.getText().toString()));
+                                                quantity.setText(medicationList.get(position).quantity);
+                                                quantity.setPadding(16, 0, 16,0);
+                                                quantity.setInputType(InputType.TYPE_CLASS_NUMBER);
+                                                quantity.setSingleLine();
+                                                medicationList.set(position, new Medication(medicationList.get(position).name,
+                                                        quantity.getText().toString()));
+                                                adapter.notifyDataSetChanged();
                                             }
                                         })
                                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -92,8 +99,7 @@ public class OrdinanceActivity extends AppCompatActivity {
 
                                             }
                                         });
-                                editdialog.create();
-                                editdialog.show();
+                                editDialog.show();
                             }
                         })
                         .setNegativeButton("Delete", new DialogInterface.OnClickListener() {
@@ -103,7 +109,6 @@ public class OrdinanceActivity extends AppCompatActivity {
                                 adapter.notifyDataSetChanged();
                             }
                         });
-                dialog.create();
                 dialog.show();
             }
         });
