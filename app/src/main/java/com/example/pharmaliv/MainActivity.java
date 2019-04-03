@@ -23,8 +23,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
-import java.util.Objects;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -62,25 +61,22 @@ public class MainActivity extends AppCompatActivity
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 user = auth.getCurrentUser();
                 if (user != null) {
-                    //Toast.makeText(MainActivity.this, "ss", Toast.LENGTH_SHORT).show();
-                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference("cl"+user.getUid());
-                    final StringBuilder s = new StringBuilder();
-                    reference.addValueEventListener(new ValueEventListener() {
+                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Client");
+                    reference.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            if ((dataSnapshot != null) && (Objects.equals(dataSnapshot.child("Login_ID").getValue(String.class),
-                                    user.getUid()))){
-                                s.append(dataSnapshot.child("Family_Name").getValue(String.class));
-                                s.append(" ");
-                                s.append(dataSnapshot.child("First_Name").getValue(String.class));
-                            }
+                            String name = dataSnapshot.child("cl"+user.getUid()).child("Family Name").getValue(String.class)
+                            + " " +
+                            dataSnapshot.child("cl"+user.getUid()).child("First Name").getValue(String.class);
+                            userName.setText(name);
                         }
+
                         @Override
                         public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                            userName.setText(databaseError.toException().toString());
                         }
                     });
-                    userName.setText(s);
+
                     userEmail.setText(user.getEmail());
                 } else {
                     startActivity(new Intent(getApplicationContext(), SingINActivity.class));

@@ -60,6 +60,10 @@
     <string name="no_name">Pharmacy name is empty</string>
     <string name="no_lat">Latitude is empty</string>
     <string name="no_lang">Langitude is empty</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
+    <string name="tab_text_3">Tab 3</string>
+    <string name="title_activity_maps">Map</string>
 
     <!-- TODO: Remove or change this placeholder text -->
 

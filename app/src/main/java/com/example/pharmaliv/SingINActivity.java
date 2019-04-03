@@ -68,7 +68,7 @@ public class SingINActivity extends AppCompatActivity {
         buttonSingUP.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(), SingUPActivity1.class));
+                startActivity(new Intent(getApplicationContext(), SingUPActivity.class));
             }
         });
     }

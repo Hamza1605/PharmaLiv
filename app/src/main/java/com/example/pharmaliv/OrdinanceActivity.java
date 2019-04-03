@@ -48,12 +48,10 @@ public class OrdinanceActivity extends AppCompatActivity {
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot ds : dataSnapshot.getChildren())
-                    meds.add(ds.child("Name").getValue(String.class));
+                    meds.add(dataSnapshot.child("Name").getValue(String.class));
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
             }
         });
         medicationList = new ArrayList<>();

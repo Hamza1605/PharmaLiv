@@ -1,52 +1,41 @@
 {
   "project_info": {
-    "project_number": "725361592071",
-    "firebase_url": "https://pharmaliv-16.firebaseio.com",
-    "project_id": "pharmaliv-16",
-    "storage_bucket": "pharmaliv-16.appspot.com"
+    "project_number": "668137459668",
+    "firebase_url": "https://pharmaliv-00.firebaseio.com",
+    "project_id": "pharmaliv-00",
+    "storage_bucket": "pharmaliv-00.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:725361592071:android:7c80b5fb3475d637",
+        "mobilesdk_app_id": "1:668137459668:android:7c80b5fb3475d637",
         "android_client_info": {
           "package_name": "com.example.pharmaliv"
         }
       },
       "oauth_client": [
         {
-          "client_id": "725361592071-8vip0tko12b580a80ik27b43sptrh079.apps.googleusercontent.com",
+          "client_id": "668137459668-kdu6tbrvc4tt3v2uad8saqfpg9a33k6c.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.pharmaliv",
             "certificate_hash": "6c231daf5f5af931c4009adea5278a0c5a8e7447"
           }
-        },
-        {
-          "client_id": "725361592071-40jfos3hjnp232e7se17d3umviict23l.apps.googleusercontent.com",
-          "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyB6U-Ut0L0l9D1Cw5DKhQz2v_xrJMRFBU0"
+          "current_key": "AIzaSyB_L7K_vJOO_RTpRwtQWx2g-O_DY5raNZU"
         }
       ],
       "services": {
-        "analytics_service": {
-          "status": 1
-        },
         "appinvite_service": {
-          "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "725361592071-40jfos3hjnp232e7se17d3umviict23l.apps.googleusercontent.com",
+              "client_id": "668137459668-caufsk55b3ika6alpltnmdmpf5s44c51.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
-        },
-        "ads_service": {
-          "status": 2
         }
       }
     }
