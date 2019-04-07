@@ -1,7 +1,9 @@
 package com.example.pharmaliv;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -20,15 +22,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import org.w3c.dom.Text;
-
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Objects;
 
 public class OrdinanceActivity extends AppCompatActivity {
@@ -43,12 +46,14 @@ public class OrdinanceActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ordinance);
-        final ArrayList<String> meds = new ArrayList<>();
+        final ArrayList<Medication> meds = new ArrayList<>();
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Medication");
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    meds.add(dataSnapshot.child("Name").getValue(String.class));
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    meds.add(new Medication(dataSnapshot.getKey(), ds.child("Name").getValue(String.class)));
+                }
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
@@ -62,7 +67,11 @@ public class OrdinanceActivity extends AppCompatActivity {
         Button buttonAdd = findViewById(R.id.add);
         Button buttonSelect = findViewById(R.id.select);
         medications.setAdapter(adapter);
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.select_dialog_item, meds);
+        final ArrayList<String> med = new ArrayList<>();
+        for (int i = 0; i < meds.size(); i++) {
+            med.add(meds.get(i).name);
+        }
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.select_dialog_item, med);
         autoCompletemedName.setAdapter(arrayAdapter);
         medications.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -86,7 +95,8 @@ public class OrdinanceActivity extends AppCompatActivity {
                                                 quantity.setPadding(16, 0, 16,0);
                                                 quantity.setInputType(InputType.TYPE_CLASS_NUMBER);
                                                 quantity.setSingleLine();
-                                                medicationList.set(position, new Medication(medicationList.get(position).name,
+                                                medicationList.set(position, new Medication(medicationList.get(position).med_id,
+                                                        medicationList.get(position).name,
                                                         quantity.getText().toString()));
                                                 adapter.notifyDataSetChanged();
                                             }
@@ -114,15 +124,20 @@ public class OrdinanceActivity extends AppCompatActivity {
         buttonAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if ((!autoCompletemedName.getText().toString().isEmpty()) && (!editTextmedQuantity.getText().toString().isEmpty())
-                        && (Integer.valueOf(editTextmedQuantity.getText().toString()) > 0)) {
-                    medicationList.add(new Medication(autoCompletemedName.getText().toString(), editTextmedQuantity.getText().toString()));
-                    adapter.notifyDataSetChanged();
-                    autoCompletemedName.setText("");
-                    editTextmedQuantity.setText("");
+                if (med.contains(autoCompletemedName.getText().toString())) {
+                    if ((!autoCompletemedName.getText().toString().isEmpty()) && (!editTextmedQuantity.getText().toString().isEmpty())
+                            && (Integer.valueOf(editTextmedQuantity.getText().toString()) > 0)) {
+                        medicationList.add(new Medication(meds.get(autoCompletemedName.getListSelection()).med_id,
+                                autoCompletemedName.getText().toString(), editTextmedQuantity.getText().toString()));
+                        adapter.notifyDataSetChanged();
+                        autoCompletemedName.setText("");
+                        editTextmedQuantity.setText("");
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Medication Name case, Quantity case are empty or negative value",
+                                Toast.LENGTH_SHORT).show();
+                    }
                 } else {
-                    Toast.makeText(getApplicationContext(), "Medication Name case, Quantity case are empty or negative value",
-                            Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "This medication is not exist in database", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -130,39 +145,32 @@ public class OrdinanceActivity extends AppCompatActivity {
         buttonSelect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if (!medicationList.isEmpty())
+                    startActivityForResult(new Intent(OrdinanceActivity.this, PharmacyListActivity.class), 1);
+                else
+                    Toast.makeText(OrdinanceActivity.this, getString(R.string.empty_medication_list), Toast.LENGTH_SHORT).show();
             }
         });
     }
-}
 
-class Medication {
-    String name;
-    String quantity;
-
-    Medication(String designation, String quantity){
-        this.name = designation;
-        this.quantity = quantity;
-    }
-}
-
-class MedicationAdapter extends ArrayAdapter<Medication> {
-
-    MedicationAdapter(@NonNull Context context, ArrayList<Medication> medications) {
-        super(context, 0, medications);
-    }
-
-    @NonNull
     @Override
-    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        View view = convertView;
-        if (view == null)
-            view = LayoutInflater.from(getContext()).inflate(android.R.layout.simple_list_item_2
-                    , parent, false);
-        TextView name = view.findViewById(android.R.id.text1);
-        TextView quntity = view.findViewById(android.R.id.text2);
-        name.setText(Objects.requireNonNull(getItem(position)).name);
-        quntity.setText(Objects.requireNonNull(getItem(position)).quantity);
-        return view;
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Ordinance").push();
+            ref.child("Pharmacy").setValue(Objects.requireNonNull(data).getStringExtra("Ph_ID"));
+            ref.child("Client").setValue("cl" + Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid());
+            ref.child("statue").setValue("0");
+            ref.child("Date").setValue(new SimpleDateFormat("dd-mm-yyyy").format(Calendar.getInstance().getTime()));
+            ref.child("Time").setValue(new SimpleDateFormat("HH:mm").format(Calendar.getInstance().getTime()));
+            ref.child("med_nbr").setValue(medicationList.size());
+            for (int i = 0; i < medicationList.size(); i++) {
+                ref.child(String.valueOf(i)).child("Name").setValue(medicationList.get(i).name);
+                ref.child(String.valueOf(i)).child("Quantity").setValue(medicationList.get(i).quantity);
+            }
+        } else {
+            Toast.makeText(getApplicationContext(), "No pharmacy selected", Toast.LENGTH_SHORT).show();
+        }
     }
 }
+

@@ -23,9 +23,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.Arrays;
-
-public class MainActivity extends AppCompatActivity
+public class ClientActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     FirebaseUser user;
@@ -37,7 +35,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_client);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -92,14 +90,6 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        Button buttonCategory = findViewById(R.id.medications_categories);
-        buttonCategory.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(), CategoriesActivity.class));
-            }
-        });
-
         Button buttonEnter = findViewById(R.id.enter_ordinance);
         buttonEnter.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -148,12 +138,11 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_address:
                 break;
             case R.id.nav_search:
-                startActivity(new Intent(getApplicationContext(), CategoriesActivity.class));
                 break;
             case R.id.nav_logout:
                 if (user != null){
                     FirebaseAuth.getInstance().signOut();
-                    startActivity(new Intent(getApplicationContext(), SingINActivity.class));
+                    finish();
                 }
                 break;
         }

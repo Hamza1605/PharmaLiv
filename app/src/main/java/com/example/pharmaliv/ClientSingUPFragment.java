@@ -19,7 +19,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -87,7 +86,7 @@ public class ClientSingUPFragment extends Fragment {
                                         mReference.child("cl" + mFirebaseUser.getUid()).child("Phone").setValue(editTextPhone.getText().toString());
                                         mReference.child("cl" + mFirebaseUser.getUid()).child("Login ID").setValue(mFirebaseUser.getUid());
                                         Toast.makeText(getContext(), getString(R.string.sing_up_successful), Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(getContext(), MainActivity.class));
+                                        startActivity(new Intent(getContext(), ClientActivity.class));
                                     }
                                 } else {
                                     Toast.makeText(getContext(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();

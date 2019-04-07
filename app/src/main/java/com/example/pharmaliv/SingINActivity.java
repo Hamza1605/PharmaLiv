@@ -2,9 +2,9 @@ package com.example.pharmaliv;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Patterns;
 import android.view.View;
@@ -17,6 +17,11 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.Objects;
 
@@ -26,6 +31,7 @@ public class SingINActivity extends AppCompatActivity {
     private Button buttonSingIN, buttonSingUP;
     private ProgressDialog mProgressDialog;
     private FirebaseAuth mFirebaseAuth;
+    private FirebaseAuth.AuthStateListener stateListener;
     private FirebaseUser mFirebaseUser;
 
     @Override
@@ -37,11 +43,11 @@ public class SingINActivity extends AppCompatActivity {
         buttonSingIN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if ((!isValidEmail())||(TextUtils.isEmpty(editTextEmail.getText()))) {
+                if ((!isValidEmail()) || (TextUtils.isEmpty(editTextEmail.getText()))) {
                     editTextEmail.setError(getString(R.string.error_invalid_email));
                     return;
                 }
-                if (TextUtils.isEmpty(editTextPassword.getText())){
+                if (TextUtils.isEmpty(editTextPassword.getText())) {
                     editTextPassword.setError(getString(R.string.error_invalid_password));
                     return;
                 }
@@ -56,7 +62,6 @@ public class SingINActivity extends AppCompatActivity {
                                     mProgressDialog.dismiss();
                                     mFirebaseUser = mFirebaseAuth.getCurrentUser();
                                     Toast.makeText(getApplicationContext(), getString(R.string.sing_in_successful), Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
                                 } else {
                                     mProgressDialog.dismiss();
                                     Toast.makeText(getApplicationContext(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
@@ -71,10 +76,55 @@ public class SingINActivity extends AppCompatActivity {
                 startActivity(new Intent(getApplicationContext(), SingUPActivity.class));
             }
         });
+
+        stateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                mFirebaseUser = mFirebaseAuth.getCurrentUser();
+                if (mFirebaseUser != null) {
+                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+                    reference.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.child("Client").hasChild("cl" + mFirebaseUser.getUid())) {
+                                Intent intent = new Intent(SingINActivity.this, ClientActivity.class);
+                                intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
+                                startActivity(intent);
+                            } else if (dataSnapshot.child("Pharmacy").hasChild("ph" + mFirebaseUser.getUid())) {
+                                Intent intent = new Intent(SingINActivity.this, ClientActivity.class);
+                                intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
+                                startActivity(intent);
+                            } else if (dataSnapshot.child("Delivery Man").hasChild("dl" + mFirebaseUser.getUid())) {
+                                Intent intent = new Intent(SingINActivity.this, ClientActivity.class);
+                                intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
+                                startActivity(intent);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+                }
+            }
+        };
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mFirebaseAuth.addAuthStateListener(stateListener);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mFirebaseAuth.removeAuthStateListener(stateListener);
+    }
+
     private void initializeUI() {
         mFirebaseAuth = FirebaseAuth.getInstance();
-        mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         editTextEmail = findViewById(R.id.ph_email);
         editTextPassword = findViewById(R.id.password);
         buttonSingIN = findViewById(R.id.sign_in);
