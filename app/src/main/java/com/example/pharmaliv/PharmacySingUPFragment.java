@@ -99,7 +99,7 @@ public class PharmacySingUPFragment extends Fragment {
                                         mReference.child("ph" + mFirebaseUser.getUid()).child("Phone").setValue(editTextPhone.getText().toString());
                                         mReference.child("ph" + mFirebaseUser.getUid()).child("Login ID").setValue(mFirebaseUser.getUid());
                                         Toast.makeText(getContext(), getString(R.string.sing_up_successful), Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(getContext(), ClientActivity.class));
+                                        startActivity(new Intent(getContext(), PharmacyActivity.class));
                                     }
                                 } else {
                                     Toast.makeText(getContext(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();

@@ -1,7 +1,6 @@
 package com.example.pharmaliv;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,9 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -65,7 +62,7 @@ public class OrdinanceActivity extends AppCompatActivity {
         autoCompletemedName = findViewById(R.id.medname);
         editTextmedQuantity = findViewById(R.id.medqauntity);
         Button buttonAdd = findViewById(R.id.add);
-        Button buttonSelect = findViewById(R.id.select);
+        Button buttonSelect = findViewById(R.id.selectord);
         medications.setAdapter(adapter);
         final ArrayList<String> med = new ArrayList<>();
         for (int i = 0; i < meds.size(); i++) {
@@ -146,7 +143,7 @@ public class OrdinanceActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!medicationList.isEmpty())
-                    startActivityForResult(new Intent(OrdinanceActivity.this, PharmacyListActivity.class), 1);
+                    startActivityForResult(new Intent(OrdinanceActivity.this, PharmacyListActivity.class), 54);
                 else
                     Toast.makeText(OrdinanceActivity.this, getString(R.string.empty_medication_list), Toast.LENGTH_SHORT).show();
             }
@@ -156,7 +153,7 @@ public class OrdinanceActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
+        if (requestCode == 54 && resultCode == Activity.RESULT_OK) {
             DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Ordinance").push();
             ref.child("Pharmacy").setValue(Objects.requireNonNull(data).getStringExtra("Ph_ID"));
             ref.child("Client").setValue("cl" + Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid());
@@ -165,8 +162,7 @@ public class OrdinanceActivity extends AppCompatActivity {
             ref.child("Time").setValue(new SimpleDateFormat("HH:mm").format(Calendar.getInstance().getTime()));
             ref.child("med_nbr").setValue(medicationList.size());
             for (int i = 0; i < medicationList.size(); i++) {
-                ref.child(String.valueOf(i)).child("Name").setValue(medicationList.get(i).name);
-                ref.child(String.valueOf(i)).child("Quantity").setValue(medicationList.get(i).quantity);
+                ref.child("Medication").child((medicationList.get(i).med_id)).setValue(medicationList.get(i).quantity);
             }
         } else {
             Toast.makeText(getApplicationContext(), "No pharmacy selected", Toast.LENGTH_SHORT).show();

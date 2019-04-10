@@ -230,5 +230,3 @@ class PharmacyAdapter extends ArrayAdapter<Pharmacy> {
         return view;
     }
 }
-
-

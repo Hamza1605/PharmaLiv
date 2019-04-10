@@ -31,8 +31,6 @@ public class PharmacyActivity extends AppCompatActivity {
 
         TabLayout tabLayout = findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
-
-
     }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {

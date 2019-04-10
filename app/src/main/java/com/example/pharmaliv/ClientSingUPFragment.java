@@ -27,7 +27,6 @@ import java.util.Objects;
 public class ClientSingUPFragment extends Fragment {
 
     private EditText editTextFirstName, editTextFamilyName, editTextEmail, editTextPassword, editTextConfirmPassword, editTextPhone;
-    private Button buttonSingUP;
     private ProgressDialog mProgressDialog;
     private FirebaseAuth mFirebaseAuth;
     private DatabaseReference mReference;
@@ -48,7 +47,7 @@ public class ClientSingUPFragment extends Fragment {
         editTextPassword = view.findViewById(R.id.cl_password);
         editTextConfirmPassword = view.findViewById(R.id.cl_confirm_password);
         editTextPhone = view.findViewById(R.id.cl_phone);
-        buttonSingUP = view.findViewById(R.id.cl_sing_up);
+        Button buttonSingUP = view.findViewById(R.id.cl_sing_up);
         initializeUI();
         buttonSingUP.setOnClickListener(new View.OnClickListener() {
             @Override
