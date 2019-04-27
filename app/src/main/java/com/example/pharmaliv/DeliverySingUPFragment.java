@@ -83,6 +83,7 @@ public class DeliverySingUPFragment extends Fragment {
                                         mReference.child("dl"+mFirebaseUser.getUid()).child("Family Name").setValue(editTextFamilyName.getText().toString());
                                         mReference.child("dl"+mFirebaseUser.getUid()).child("Phone").setValue(editTextPhone.getText().toString());
                                         mReference.child("dl"+mFirebaseUser.getUid()).child("Login ID").setValue(mFirebaseUser.getUid());
+                                        mReference.child("dl" + mFirebaseUser.getUid()).child("Status").setValue("0");
                                         Toast.makeText(getContext(), getString(R.string.sing_up_successful), Toast.LENGTH_SHORT).show();
                                         startActivity(new Intent(getContext(), ClientActivity.class));
                                     }

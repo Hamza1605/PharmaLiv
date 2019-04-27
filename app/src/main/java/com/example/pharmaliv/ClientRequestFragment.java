@@ -1,10 +1,10 @@
 package com.example.pharmaliv;
 
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,14 +14,12 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -37,7 +35,7 @@ public class ClientRequestFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_client_request, container, false);
         TextView clName = view.findViewById(R.id.rec_cl_name);
-        EditText total = view.findViewById(R.id.req_totol);
+        final EditText total = view.findViewById(R.id.req_total);
         Button accept = view.findViewById(R.id.req_accept);
         Button decline = view.findViewById(R.id.req_decline);
         final ImageView req_img = view.findViewById(R.id.req_img);
@@ -54,7 +52,6 @@ public class ClientRequestFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.child("med_nbr").exists()) {
                     DatabaseReference r = reference.child("Medication");
-                    int nbr = dataSnapshot.child("med_nbr").getValue(Integer.class);
                     r.addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -85,7 +82,6 @@ public class ClientRequestFragment extends Fragment {
                 } else if (dataSnapshot.child("image").exists()) {
                     StorageReference sRef = FirebaseStorage.getInstance().getReference().child("Ordinance")
                             .child(Objects.requireNonNull(reference.getKey()));
-                    final Uri uri = null;
                     sRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                         @Override
                         public void onSuccess(Uri uri) {
@@ -104,14 +100,19 @@ public class ClientRequestFragment extends Fragment {
         accept.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if (!TextUtils.isEmpty(total.getText().toString())) {
+                    reference.child("Statue").setValue("1");
+                    reference.child("Total").setValue(total.getText().toString());
+                } else {
+                    total.setText(getString(R.string.put_total));
+                }
             }
         });
 
         decline.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                reference.child("Statue").setValue("2");
             }
         });
         return view;

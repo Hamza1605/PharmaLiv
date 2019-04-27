@@ -70,6 +70,17 @@
     <string name="set_total_price">Set Total Price</string>
     <string name="decline">Decline</string>
     <string name="no_image">No Ordinance Scanned</string>
+    <string name="put_total">Put Total Price</string>
+    <string name="accepted">Accepted</string>
+    <string name="declined">Declined</string>
+    <string name="waiting_reply">Waiting reply</string>
+    <string name="state">State</string>
+    <string name="active_status">Active Status</string>
+    <string name="on_hold">On Hold</string>
+    <string name="occupied">Occupied</string>
+    <string name="out_of_service">Out of Service</string>
+    <string name="forgot_password">Forgot Password</string>
+    <string name="email_sent">Email Sent</string>
 
     <!-- TODO: Remove or change this placeholder text -->
 

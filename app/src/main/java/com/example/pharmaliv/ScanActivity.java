@@ -133,7 +133,7 @@ public class ScanActivity extends AppCompatActivity {
                     .child(Objects.requireNonNull(dbRef.getKey()));
             dbRef.child("Pharmacy").setValue(Objects.requireNonNull(data).getStringExtra("Ph_ID"));
             dbRef.child("Client").setValue("cl" + Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid());
-            dbRef.child("statue").setValue("0");
+            dbRef.child("State").setValue("0");
             dbRef.child("Date").setValue(new SimpleDateFormat("dd-mm-yyyy").format(Calendar.getInstance().getTime()));
             dbRef.child("Time").setValue(new SimpleDateFormat("HH:mm").format(Calendar.getInstance().getTime()));
             sRef.putFile(resultUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {

@@ -49,6 +49,7 @@ public class PharmacyListActivity extends AppCompatActivity implements GoogleApi
     private Location myLocation;
     private ArrayList<Pharmacy> pharmacyList;
     private PharmacyAdapter adapter;
+    private ListView listViewPharmacy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,22 +60,25 @@ public class PharmacyListActivity extends AppCompatActivity implements GoogleApi
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
+        googleApiClient.connect();
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         pharmacyList = new ArrayList<>();
         adapter = new PharmacyAdapter(this, pharmacyList, myLocation);
-        ListView listViewPharmacy = findViewById(R.id.pharmacies_list);
+        listViewPharmacy = findViewById(R.id.pharmacies_list);
         listViewPharmacy.setAdapter(adapter);
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("Pharmacy");
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                pharmacyList.add(new Pharmacy(
-                        dataSnapshot.child("Login ID").getValue(String.class),
-                        dataSnapshot.child("Name").getValue(String.class),
-                        dataSnapshot.child("Latitude").getValue(Double.class),
-                        dataSnapshot.child("Longitude").getValue(Double.class)
-                ));
-                adapter.notifyDataSetChanged();
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    pharmacyList.add(new Pharmacy(
+                            ds.child("Login ID").getValue(String.class),
+                            ds.child("Name").getValue(String.class),
+                            Double.parseDouble(Objects.requireNonNull(ds.child("Latitude").getValue(String.class))),
+                            Double.parseDouble(Objects.requireNonNull(ds.child("Longitude").getValue(String.class)))
+                    ));
+                    adapter.notifyDataSetChanged();
+                }
             }
 
             @Override
@@ -85,24 +89,23 @@ public class PharmacyListActivity extends AppCompatActivity implements GoogleApi
         listViewPharmacy.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
-                builder.create();
-                builder.setTitle(R.string.confirm);
-                builder.setPositiveButton(R.string.send, new DialogInterface.OnClickListener() {
+                AlertDialog.Builder builder = new AlertDialog.Builder(PharmacyListActivity.this)
+                        .setTitle(R.string.confirm)
+                        .setPositiveButton(R.string.send, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Intent intent = PharmacyListActivity.this.getIntent();
-                        intent.putExtra("Ph_ID", pharmacyList.get(position).ph_id);
+                        intent.putExtra("Ph_ID", "ph" + pharmacyList.get(position).ph_id);
                         PharmacyListActivity.this.setResult(RESULT_OK, intent);
                         finish();
                     }
-                });
-                builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        })
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
                     }
                 });
+                builder.show();
             }
         });
     }
@@ -110,7 +113,8 @@ public class PharmacyListActivity extends AppCompatActivity implements GoogleApi
     @Override
     protected void onStart() {
         super.onStart();
-        googleApiClient.connect();
+        googleApiClient.reconnect();
+
     }
 
     @Override
@@ -176,7 +180,7 @@ class Pharmacy {
     Double Latitude;
     Double Longitude;
 
-    public Pharmacy(String ph_id, String Name, Double Latitude, Double Longitude) {
+    Pharmacy(String ph_id, String Name, Double Latitude, Double Longitude) {
         this.ph_id = ph_id;
         this.Name = Name;
         this.Latitude = Latitude;
@@ -199,34 +203,36 @@ class PharmacyAdapter extends ArrayAdapter<Pharmacy> {
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         View view = convertView;
-        if (convertView == null) {
+        if (view == null)
             view = LayoutInflater.from(getContext()).inflate(R.layout.pharmacy_row, parent, false);
-        }
         TextView pharmacy_name = view.findViewById(R.id.ph_name);
         TextView pharmacy_address = view.findViewById(R.id.address);
         TextView pharmacy_distance = view.findViewById(R.id.distance);
         Geocoder geocoder = new Geocoder(context, Locale.getDefault());
         List<Address> addresses = null;
+
         try {
             addresses = geocoder.getFromLocation(
                     Objects.requireNonNull(getItem(position)).Latitude,
                     Objects.requireNonNull(getItem(position)).Longitude, 1);
-        } catch (IOException e) {
+        } catch (IOException e1) {
+            e1.printStackTrace();
             pharmacy_address.setText(R.string.service_not_available);
-        } catch (IllegalArgumentException e) {
+        } catch (
+                IllegalArgumentException e2) {
             pharmacy_address.setText(R.string.invalid_information);
         }
         pharmacy_name.setText(Objects.requireNonNull(getItem(position)).Name);
-        if (addresses != null || addresses.size() != 0) {
+        if ((addresses != null ? addresses.size() : 0) != 0) {
             Address address = addresses.get(0);
             pharmacy_address.setText(address.getAddressLine(0));
         } else {
             pharmacy_address.setText(R.string.address_not_found);
         }
         float[] v = new float[1];
-        Location.distanceBetween(location.getLatitude(), location.getLongitude(),
-                Objects.requireNonNull(getItem(position)).Latitude, Objects.requireNonNull(getItem(position)).Longitude, v);
-        pharmacy_distance.setText(Arrays.toString(v));
+
+        Location.distanceBetween(location.getLatitude(), location.getLongitude(), Objects.requireNonNull(getItem(position)).Latitude, Objects.requireNonNull(getItem(position)).Longitude, v);
+        pharmacy_distance.setText(String.valueOf(v[0]) + " m");
         return view;
     }
 }

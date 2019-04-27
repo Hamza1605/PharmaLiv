@@ -10,6 +10,7 @@ import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -29,6 +30,7 @@ public class SingINActivity extends AppCompatActivity {
 
     private EditText editTextEmail, editTextPassword;
     private Button buttonSingIN, buttonSingUP;
+    private TextView textViewForgotPassword;
     private ProgressDialog mProgressDialog;
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener stateListener;
@@ -46,8 +48,7 @@ public class SingINActivity extends AppCompatActivity {
                 if ((!isValidEmail()) || (TextUtils.isEmpty(editTextEmail.getText()))) {
                     editTextEmail.setError(getString(R.string.error_invalid_email));
                     return;
-                }
-                if (TextUtils.isEmpty(editTextPassword.getText())) {
+                } else if (TextUtils.isEmpty(editTextPassword.getText())) {
                     editTextPassword.setError(getString(R.string.error_invalid_password));
                     return;
                 }
@@ -61,10 +62,12 @@ public class SingINActivity extends AppCompatActivity {
                                 if (task.isSuccessful()) {
                                     mProgressDialog.dismiss();
                                     mFirebaseUser = mFirebaseAuth.getCurrentUser();
-                                    Toast.makeText(getApplicationContext(), getString(R.string.sing_in_successful), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getApplicationContext(), getString(R.string.sing_in_successful),
+                                            Toast.LENGTH_SHORT).show();
                                 } else {
                                     mProgressDialog.dismiss();
-                                    Toast.makeText(getApplicationContext(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getApplicationContext(), Objects.requireNonNull(task.getException()).getMessage(),
+                                            Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });
@@ -74,6 +77,13 @@ public class SingINActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(getApplicationContext(), SingUPActivity.class));
+            }
+        });
+
+        textViewForgotPassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(SingINActivity.this, ForgotPasswordFragment.class));
             }
         });
 
@@ -91,7 +101,7 @@ public class SingINActivity extends AppCompatActivity {
                                 intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
                                 startActivity(intent);
                             } else if (dataSnapshot.child("Pharmacy").hasChild("ph" + mFirebaseUser.getUid())) {
-                                Intent intent = new Intent(SingINActivity.this, ClientActivity.class);
+                                Intent intent = new Intent(SingINActivity.this, PharmacyActivity.class);
                                 intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
                                 startActivity(intent);
                             } else if (dataSnapshot.child("Delivery Man").hasChild("dl" + mFirebaseUser.getUid())) {
@@ -125,8 +135,9 @@ public class SingINActivity extends AppCompatActivity {
 
     private void initializeUI() {
         mFirebaseAuth = FirebaseAuth.getInstance();
-        editTextEmail = findViewById(R.id.ph_email);
+        editTextEmail = findViewById(R.id.user_email);
         editTextPassword = findViewById(R.id.password);
+        textViewForgotPassword = findViewById(R.id.forgot_password);
         buttonSingIN = findViewById(R.id.sign_in);
         buttonSingUP = findViewById(R.id.sing_up);
         mProgressDialog = new ProgressDialog(this);

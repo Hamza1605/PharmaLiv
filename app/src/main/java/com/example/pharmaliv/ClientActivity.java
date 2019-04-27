@@ -9,7 +9,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -68,13 +67,11 @@ public class ClientActivity extends AppCompatActivity
                             dataSnapshot.child("cl"+user.getUid()).child("First Name").getValue(String.class);
                             userName.setText(name);
                         }
-
                         @Override
                         public void onCancelled(@NonNull DatabaseError databaseError) {
                             userName.setText(databaseError.toException().toString());
                         }
                     });
-
                     userEmail.setText(user.getEmail());
                 } else {
                     startActivity(new Intent(getApplicationContext(), SingINActivity.class));
@@ -121,19 +118,14 @@ public class ClientActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
 
         switch (item.getItemId()) {
             case R.id.nav_orders:
+                startActivity(new Intent(ClientActivity.this, OrdersActivity.class)
+                        .putExtra("Uid", "cl" + user.getUid()));
                 break;
             case R.id.nav_address:
                 break;

@@ -46,7 +46,7 @@ public class PharmacySingUPFragment extends Fragment {
         editTextPhLat = view.findViewById(R.id.ph_lat);
         editTextPhLang = view.findViewById(R.id.ph_lang);
         buttonLocation = view.findViewById(R.id.ph_get_loc);
-        editTextEmail = view.findViewById(R.id.ph_email);
+        editTextEmail = view.findViewById(R.id.user_email);
         editTextPassword = view.findViewById(R.id.ph_password);
         editTextConfirmPassword = view.findViewById(R.id.ph_confirm_password);
         editTextPhone = view.findViewById(R.id.ph_phone);
@@ -93,11 +93,16 @@ public class PharmacySingUPFragment extends Fragment {
                                 if (task.isSuccessful()) {
                                     mFirebaseUser = mFirebaseAuth.getCurrentUser();
                                     if (mFirebaseUser != null) {
-                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Name").setValue(editTextPhName.getText().toString());
-                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Latitude").setValue(editTextPhLat.getText().toString());
-                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Longitude").setValue(editTextPhLat.getText().toString());
-                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Phone").setValue(editTextPhone.getText().toString());
-                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Login ID").setValue(mFirebaseUser.getUid());
+                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Name")
+                                                .setValue(editTextPhName.getText().toString());
+                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Location").child("Latitude")
+                                                .setValue(editTextPhLat.getText().toString());
+                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Location").child("Longitude")
+                                                .setValue(editTextPhLat.getText().toString());
+                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Phone")
+                                                .setValue(editTextPhone.getText().toString());
+                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Login ID")
+                                                .setValue(mFirebaseUser.getUid());
                                         Toast.makeText(getContext(), getString(R.string.sing_up_successful), Toast.LENGTH_SHORT).show();
                                         startActivity(new Intent(getContext(), PharmacyActivity.class));
                                     }
@@ -139,8 +144,8 @@ public class PharmacySingUPFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == Activity.RESULT_OK){
-            editTextPhLat.setText(data.getStringExtra("latitude"));
-            editTextPhLang.setText(data.getStringExtra("longitude"));
+            editTextPhLat.setText(String.valueOf(data.getDoubleExtra("latitude", 0)));
+            editTextPhLang.setText(String.valueOf(data.getDoubleExtra("longitude", 0)));
         }
     }
 }

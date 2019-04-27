@@ -32,49 +32,49 @@ public class ClientsRequestsFragment extends Fragment {
     DatabaseReference reference;
     FirebaseUser user;
 
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_clients_requests, container, false);
+        final View view = inflater.inflate(R.layout.fragment_clients_requests, container, false);
         final ArrayList<ClientRequest> clientRequests = new ArrayList<>();
         final RequestAdapter requestAdapter = new RequestAdapter(Objects.requireNonNull(getContext()), clientRequests);
-        ListView listView = view.findViewById(R.id.requests_list);
+        final ListView listView = view.findViewById(R.id.requests_list);
         listView.setAdapter(requestAdapter);
         user = FirebaseAuth.getInstance().getCurrentUser();
         reference = FirebaseDatabase.getInstance().getReference().child("Ordinance");
+        final DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Client");
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Client");
-                if ((Objects.equals(dataSnapshot.child("Pharmacy").getValue(String.class), "ph" + user.getUid()))
-                        && (Objects.equals(dataSnapshot.child("statue").getValue(String.class), "0"))) {
-                    final String[] s1 = new String[1];
-                    final String[] s2 = new String[1];
-                    reference.child(Objects.requireNonNull(dataSnapshot.child("Client")
-                            .getValue(String.class))).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            s1[0] = snapshot.child("Family Name").getValue(String.class);
-                            s2[0] = snapshot.child("First Name").getValue(String.class);
-                        }
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    if ((Objects.equals(ds.child("Pharmacy").getValue(String.class), "ph" + user.getUid()))
+                            && ((Objects.equals(ds.child("State").getValue(String.class), "0"))
+                            || (Objects.equals(ds.child("State").getValue(String.class), "3")))) {
+                        final String[] s1 = new String[1];
+                        final String[] s2 = new String[1];
+                        ref.child(Objects.requireNonNull(ds.child("Client")
+                                .getValue(String.class))).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                s1[0] = snapshot.child("Family Name").getValue(String.class);
+                                s2[0] = snapshot.child("First Name").getValue(String.class);
+                            }
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-
-                        }
-                    });
-                    clientRequests.add(new ClientRequest(dataSnapshot.getKey(),
-                            dataSnapshot.child("Client").getValue(String.class),
-                            s1[0] + " " + s2[0],
-                            dataSnapshot.child("Date").getValue(String.class),
-                            dataSnapshot.child("Time").getValue(String.class)));
-                    requestAdapter.notifyDataSetChanged();
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                            }
+                        });
+                        clientRequests.add(new ClientRequest(
+                                ds.getKey(),
+                                ds.child("Client").getValue(String.class),
+                                s1[0] + " " + s2[0],
+                                ds.child("Date").getValue(String.class),
+                                ds.child("Time").getValue(String.class)));
+                        requestAdapter.notifyDataSetChanged();
+                    }
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
             }
         });
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -86,10 +86,8 @@ public class ClientsRequestsFragment extends Fragment {
                 startActivity(intent);
             }
         });
-
         return view;
     }
-
 }
 
 class ClientRequest {

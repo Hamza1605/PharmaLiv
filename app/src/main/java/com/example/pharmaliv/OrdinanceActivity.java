@@ -35,8 +35,8 @@ public class OrdinanceActivity extends AppCompatActivity {
 
     ArrayList<Medication> medicationList;
     MedicationAdapter adapter;
-    AutoCompleteTextView autoCompletemedName;
-    EditText editTextmedQuantity;
+    AutoCompleteTextView autoCompleteName;
+    EditText editTextMedQuantity;
     ListView medications;
 
     @Override
@@ -44,12 +44,14 @@ public class OrdinanceActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ordinance);
         final ArrayList<Medication> meds = new ArrayList<>();
+        final ArrayList<String> med = new ArrayList<>();
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Medication");
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    meds.add(new Medication(dataSnapshot.getKey(), ds.child("Name").getValue(String.class)));
+                    meds.add(new Medication(ds.getKey(), ds.child("Name").getValue(String.class)));
+                    med.add(ds.child("Name").getValue(String.class));
                 }
             }
             @Override
@@ -59,17 +61,25 @@ public class OrdinanceActivity extends AppCompatActivity {
         medicationList = new ArrayList<>();
         adapter = new MedicationAdapter(this, medicationList);
         medications = findViewById(R.id.medicationsListView);
-        autoCompletemedName = findViewById(R.id.medname);
-        editTextmedQuantity = findViewById(R.id.medqauntity);
+        autoCompleteName = findViewById(R.id.medname);
+        editTextMedQuantity = findViewById(R.id.medqauntity);
         Button buttonAdd = findViewById(R.id.add);
-        Button buttonSelect = findViewById(R.id.selectord);
+        Button buttonSelect = findViewById(R.id.selectphord);
         medications.setAdapter(adapter);
-        final ArrayList<String> med = new ArrayList<>();
+
         for (int i = 0; i < meds.size(); i++) {
             med.add(meds.get(i).name);
         }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.select_dialog_item, med);
-        autoCompletemedName.setAdapter(arrayAdapter);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(OrdinanceActivity.this, android.R.layout.select_dialog_item, med);
+        autoCompleteName.setAdapter(arrayAdapter);
+        autoCompleteName.setThreshold(1);
+        final int[] selectedItemPosition = {0};
+        autoCompleteName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                selectedItemPosition[0] = position;
+            }
+        });
         medications.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(final AdapterView<?> parent, View view, final int position, long id) {
@@ -121,14 +131,14 @@ public class OrdinanceActivity extends AppCompatActivity {
         buttonAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (med.contains(autoCompletemedName.getText().toString())) {
-                    if ((!autoCompletemedName.getText().toString().isEmpty()) && (!editTextmedQuantity.getText().toString().isEmpty())
-                            && (Integer.valueOf(editTextmedQuantity.getText().toString()) > 0)) {
-                        medicationList.add(new Medication(meds.get(autoCompletemedName.getListSelection()).med_id,
-                                autoCompletemedName.getText().toString(), editTextmedQuantity.getText().toString()));
+                if (med.contains(autoCompleteName.getText().toString())) {
+                    if ((!autoCompleteName.getText().toString().isEmpty()) && (!editTextMedQuantity.getText().toString().isEmpty())
+                            && (Integer.valueOf(editTextMedQuantity.getText().toString()) > 0)) {
+                        medicationList.add(new Medication(meds.get(selectedItemPosition[0]).med_id,
+                                autoCompleteName.getText().toString(), editTextMedQuantity.getText().toString()));
                         adapter.notifyDataSetChanged();
-                        autoCompletemedName.setText("");
-                        editTextmedQuantity.setText("");
+                        autoCompleteName.setText("");
+                        editTextMedQuantity.setText("0");
                     } else {
                         Toast.makeText(getApplicationContext(), "Medication Name case, Quantity case are empty or negative value",
                                 Toast.LENGTH_SHORT).show();
@@ -138,7 +148,6 @@ public class OrdinanceActivity extends AppCompatActivity {
                 }
             }
         });
-
         buttonSelect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -157,8 +166,8 @@ public class OrdinanceActivity extends AppCompatActivity {
             DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Ordinance").push();
             ref.child("Pharmacy").setValue(Objects.requireNonNull(data).getStringExtra("Ph_ID"));
             ref.child("Client").setValue("cl" + Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid());
-            ref.child("statue").setValue("0");
-            ref.child("Date").setValue(new SimpleDateFormat("dd-mm-yyyy").format(Calendar.getInstance().getTime()));
+            ref.child("State").setValue("0");
+            ref.child("Date").setValue(new SimpleDateFormat("dd-MM-yyyy").format(Calendar.getInstance().getTime()));
             ref.child("Time").setValue(new SimpleDateFormat("HH:mm").format(Calendar.getInstance().getTime()));
             ref.child("med_nbr").setValue(medicationList.size());
             for (int i = 0; i < medicationList.size(); i++) {
@@ -169,4 +178,3 @@ public class OrdinanceActivity extends AppCompatActivity {
         }
     }
 }
-

@@ -3,15 +3,10 @@
     xmlns:dist="http://schemas.android.com/apk/distribution"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.pharmaliv">
-    <!--
-         The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
-         Google Maps Android API v2, but you must specify either coarse or fine
-         location permissions for the 'MyLocation' functionality.
-    -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <dist:module dist:instant="true" />
 
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -26,11 +21,17 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning"
         tools:remove="android:appComponentFactory">
+        <activity android:name=".DeliveryManActivity"></activity>
+        <activity
+            android:name=".OrdersActivity"
+            android:label="Orders" />
         <activity
             android:name=".PharmacyActivity"
             android:label="@string/title_activity_pharmacy"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-        <activity android:name=".PharmacyListActivity" />
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".PharmacyListActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
