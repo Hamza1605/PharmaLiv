@@ -12,10 +12,6 @@
             android:id="@+id/nav_address"
             android:icon="@drawable/ic_address"
             android:title="@string/change_address" />
-        <item
-            android:id="@+id/nav_search"
-            android:icon="@drawable/ic_search"
-            android:title="@string/search"/>
     </group>
 
     <item android:title="@string/communicate">

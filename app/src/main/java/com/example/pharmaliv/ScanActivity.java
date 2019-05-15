@@ -3,8 +3,12 @@ package com.example.pharmaliv;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -19,6 +23,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.Api;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
@@ -31,6 +36,8 @@ import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 public class ScanActivity extends AppCompatActivity {
@@ -42,11 +49,13 @@ public class ScanActivity extends AppCompatActivity {
 
     private Uri uri, resultUri;
     private ImageView imageView;
+    private Location clientLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
+
         imageView = findViewById(R.id.ImageView);
         Button buttonCamera = findViewById(R.id.camera);
         buttonCamera.setOnClickListener(new View.OnClickListener() {
@@ -125,17 +134,16 @@ public class ScanActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
+        Date currentTime = Calendar.getInstance().getTime();
         if (requestCode == 55 && resultCode == Activity.RESULT_OK) {
-
             DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().child("Ordinance").push();
             StorageReference sRef = FirebaseStorage.getInstance().getReference().child("Ordinance")
                     .child(Objects.requireNonNull(dbRef.getKey()));
             dbRef.child("Pharmacy").setValue(Objects.requireNonNull(data).getStringExtra("Ph_ID"));
             dbRef.child("Client").setValue("cl" + Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid());
             dbRef.child("State").setValue("0");
-            dbRef.child("Date").setValue(new SimpleDateFormat("dd-mm-yyyy").format(Calendar.getInstance().getTime()));
-            dbRef.child("Time").setValue(new SimpleDateFormat("HH:mm").format(Calendar.getInstance().getTime()));
+            dbRef.child("Date").setValue(new SimpleDateFormat("mm-dd-yyyy", Locale.getDefault()).format(currentTime));
+            dbRef.child("Time").setValue(new SimpleDateFormat("HH:mm", Locale.getDefault()).format(currentTime));
             sRef.putFile(resultUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -158,31 +166,12 @@ public class ScanActivity extends AppCompatActivity {
                         .start(this);
             }
         }
+
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE){
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
                 resultUri = Objects.requireNonNull(result).getUri();
                 imageView.setImageURI(resultUri);
-
-                /*
-                BitmapDrawable bitmapDrawable = (BitmapDrawable) imageView.getDrawable();
-                Bitmap bitmap = bitmapDrawable.getBitmap();
-                TextRecognizer recognizer = new TextRecognizer.Builder(getApplicationContext()).build();
-                if (recognizer.isOperational()){
-                    Frame frame = new Frame.Builder().setBitmap(bitmap).build();
-                    SparseArray<TextBlock> items = recognizer.detect(frame);
-                    StringBuilder stringBuilder = new StringBuilder();
-                    TextBlock item;
-                    for (int i = 0; i<items.size(); i++){
-                        item= items.valueAt(i);
-                        stringBuilder.append(item.getValue());
-                        stringBuilder.append("\n");
-                    }
-                    textView.setText(stringBuilder.toString());
-                }else {
-                    Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
-                }
-                 */
             }else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE){
                 Exception e = Objects.requireNonNull(result).getError();
                 Toast.makeText(this, "error: "+e.getMessage(), Toast.LENGTH_SHORT).show();

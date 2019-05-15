@@ -1,16 +1,18 @@
 package com.example.pharmaliv;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -20,7 +22,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.Objects;
 
 public class PharmacyActivity extends AppCompatActivity {
@@ -35,23 +36,58 @@ public class PharmacyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pharmacy);
 
-        final Toolbar toolbar = findViewById(R.id.toolbar);
+        final Toolbar toolbar = findViewById(R.id.ph_toolbar);
         setSupportActionBar(toolbar);
 
         auth = FirebaseAuth.getInstance();
         bundle = new Bundle();
 
-        SectionsPagerAdapter mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-        ClientsRequestsFragment clientsRequestsFragment = new ClientsRequestsFragment();
-        clientsRequestsFragment.setArguments(bundle);
-        mSectionsPagerAdapter.addFragment(clientsRequestsFragment, getString(R.string.client));
-        mSectionsPagerAdapter.addFragment(new Delivery_Men_Fragment(), getString(R.string.delivery));
+        Button clientsOrders = findViewById(R.id.cl_orders);
+        Button delivery_men_list = findViewById(R.id.dl_list);
+        Button addMedication = findViewById(R.id.add_med);
 
-        ViewPager mViewPager = findViewById(R.id.container);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
+        clientsOrders.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(PharmacyActivity.this, ClientsRequestsActivity.class));
+            }
+        });
 
-        TabLayout tabLayout = findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(mViewPager);
+        delivery_men_list.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(PharmacyActivity.this, DeliveryMenActivity.class));
+            }
+        });
+
+        addMedication.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final EditText editText = new EditText(PharmacyActivity.this);
+                AlertDialog dialog = new AlertDialog.Builder(PharmacyActivity.this)
+                        .setTitle(getString(R.string.add_medication))
+                        .setView(editText)
+                        .setPositiveButton(getString(R.string.add_medication), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                DatabaseReference medRef = FirebaseDatabase.getInstance().getReference().child("Medication");
+                                if (!TextUtils.isEmpty(editText.getText().toString())) {
+                                    medRef.push().child("Name").setValue(editText.getText().toString());
+                                } else {
+                                    editText.setError("");
+                                }
+                            }
+                        })
+                        .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        })
+                        .create();
+                dialog.show();
+            }
+        });
 
         stateListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -63,10 +99,8 @@ public class PharmacyActivity extends AppCompatActivity {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             String name = dataSnapshot.child("ph" + user.getUid()).child("Name").getValue(String.class);
-                            bundle.putDouble("Latitude", Double.parseDouble(
-                                    Objects.requireNonNull(dataSnapshot.child("Latitude").getValue(String.class))));
-                            bundle.putDouble("Longitude", Double.parseDouble(
-                                    Objects.requireNonNull(dataSnapshot.child("Longitude").getValue(String.class))));
+                            //    bundle.putDouble("Latitude", Double.parseDouble(Objects.requireNonNull(dataSnapshot.child("Latitude").getValue(String.class))));
+                            // bundle.putDouble("Longitude", Double.parseDouble(Objects.requireNonNull(dataSnapshot.child("Longitude").getValue(String.class))));
                             toolbar.setTitle(name);
                         }
 
@@ -76,10 +110,12 @@ public class PharmacyActivity extends AppCompatActivity {
                         }
                     });
                 } else {
-                    startActivity(new Intent(getApplicationContext(), SingINActivity.class));
+                    startActivity(new Intent(getApplicationContext(), SignINActivity.class));
+                    finish();
                 }
             }
         };
+
     }
 
     @Override
@@ -94,34 +130,18 @@ public class PharmacyActivity extends AppCompatActivity {
         auth.removeAuthStateListener(stateListener);
     }
 
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_sing_up, menu);
+        return true;
+    }
 
-        private ArrayList<Fragment> fragments = new ArrayList<>();
-        private ArrayList<String> titles = new ArrayList<>();
-
-        SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_sing_in) {
+            auth.signOut();
+            return true;
         }
-
-        @Override
-        public Fragment getItem(int position) {
-            return fragments.get(position);
-        }
-
-        @Override
-        public int getCount() {
-            return fragments.size();
-        }
-
-        void addFragment(Fragment fragment, String title) {
-            fragments.add(fragment);
-            titles.add(title);
-        }
-
-        @Nullable
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return titles.get(position);
-        }
+        return super.onOptionsItemSelected(item);
     }
 }

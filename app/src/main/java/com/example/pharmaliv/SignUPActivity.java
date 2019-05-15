@@ -14,7 +14,7 @@ import android.view.MenuItem;
 
 import java.util.ArrayList;
 
-public class SingUPActivity extends AppCompatActivity {
+public class SignUPActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

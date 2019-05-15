@@ -29,6 +29,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.Objects;
 
 public class OrdinanceActivity extends AppCompatActivity {
@@ -68,9 +69,11 @@ public class OrdinanceActivity extends AppCompatActivity {
         medications.setAdapter(adapter);
 
         for (int i = 0; i < meds.size(); i++) {
-            med.add(meds.get(i).name);
+            med.add(meds.get(i).getName());
         }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(OrdinanceActivity.this, android.R.layout.select_dialog_item, med);
+
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(OrdinanceActivity.this,
+                android.R.layout.select_dialog_item, med);
         autoCompleteName.setAdapter(arrayAdapter);
         autoCompleteName.setThreshold(1);
         final int[] selectedItemPosition = {0};
@@ -98,13 +101,13 @@ public class OrdinanceActivity extends AppCompatActivity {
                                         .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
-                                                quantity.setText(medicationList.get(position).quantity);
+                                                quantity.setText(medicationList.get(position).getQuantity());
                                                 quantity.setPadding(16, 0, 16,0);
                                                 quantity.setInputType(InputType.TYPE_CLASS_NUMBER);
                                                 quantity.setSingleLine();
-                                                medicationList.set(position, new Medication(medicationList.get(position).med_id,
-                                                        medicationList.get(position).name,
-                                                        quantity.getText().toString()));
+                                                medicationList.set(position, new Medication(medicationList.get(position).getMed_id(),
+                                                        medicationList.get(position).getName(),
+                                                        Integer.parseInt(quantity.getText().toString())));
                                                 adapter.notifyDataSetChanged();
                                             }
                                         })
@@ -131,20 +134,30 @@ public class OrdinanceActivity extends AppCompatActivity {
         buttonAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (med.contains(autoCompleteName.getText().toString())) {
-                    if ((!autoCompleteName.getText().toString().isEmpty()) && (!editTextMedQuantity.getText().toString().isEmpty())
-                            && (Integer.valueOf(editTextMedQuantity.getText().toString()) > 0)) {
-                        medicationList.add(new Medication(meds.get(selectedItemPosition[0]).med_id,
-                                autoCompleteName.getText().toString(), editTextMedQuantity.getText().toString()));
-                        adapter.notifyDataSetChanged();
-                        autoCompleteName.setText("");
-                        editTextMedQuantity.setText("0");
+                if ((!autoCompleteName.getText().toString().isEmpty()) && (!editTextMedQuantity.getText().toString().isEmpty())
+                        && (Integer.valueOf(editTextMedQuantity.getText().toString()) > 0)) {
+                    if (med.contains(autoCompleteName.getText().toString())) {
+                        if (!contains(autoCompleteName.getText().toString(), medicationList)) {
+                            medicationList.add(new Medication(
+                                    meds.get(selectedItemPosition[0]).getMed_id(),
+                                    autoCompleteName.getText().toString(),
+                                    Integer.valueOf(editTextMedQuantity.getText().toString())));
+                            adapter.notifyDataSetChanged();
+                            autoCompleteName.setText("");
+                            editTextMedQuantity.setText("0");
+                        } else {
+                            Toast.makeText(getApplicationContext(), "This medication is  exist in the list",
+                                    Toast.LENGTH_SHORT).show();
+                            autoCompleteName.setText("");
+                            editTextMedQuantity.setText("0");
+                        }
                     } else {
-                        Toast.makeText(getApplicationContext(), "Medication Name case, Quantity case are empty or negative value",
+                        Toast.makeText(getApplicationContext(), "This medication is not exist in database",
                                 Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Toast.makeText(getApplicationContext(), "This medication is not exist in database", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Medication Name case, Quantity case are empty or negative value"
+                            , Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -167,14 +180,28 @@ public class OrdinanceActivity extends AppCompatActivity {
             ref.child("Pharmacy").setValue(Objects.requireNonNull(data).getStringExtra("Ph_ID"));
             ref.child("Client").setValue("cl" + Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid());
             ref.child("State").setValue("0");
-            ref.child("Date").setValue(new SimpleDateFormat("dd-MM-yyyy").format(Calendar.getInstance().getTime()));
-            ref.child("Time").setValue(new SimpleDateFormat("HH:mm").format(Calendar.getInstance().getTime()));
+            ref.child("Date").setValue(new SimpleDateFormat("yyyy / MM / dd", Locale.getDefault())
+                    .format(Calendar.getInstance().getTime()));
+            ref.child("Time").setValue(new SimpleDateFormat("HH:mm", Locale.getDefault())
+                    .format(Calendar.getInstance().getTime()));
             ref.child("med_nbr").setValue(medicationList.size());
             for (int i = 0; i < medicationList.size(); i++) {
-                ref.child("Medication").child((medicationList.get(i).med_id)).setValue(medicationList.get(i).quantity);
+                ref.child("Medication").child((medicationList.get(i).getName())).setValue(medicationList.get(i).getQuantity());
             }
         } else {
             Toast.makeText(getApplicationContext(), "No pharmacy selected", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    boolean contains(String s, ArrayList<Medication> medications) {
+        boolean b = false;
+        for (int i = 0; i < medications.size(); i++) {
+            if (medications.get(i).getName().equals(s)) {
+                b = true;
+            } else {
+                i++;
+            }
+        }
+        return b;
     }
 }

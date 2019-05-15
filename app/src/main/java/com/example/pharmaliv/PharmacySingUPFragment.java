@@ -46,18 +46,13 @@ public class PharmacySingUPFragment extends Fragment {
         editTextPhLat = view.findViewById(R.id.ph_lat);
         editTextPhLang = view.findViewById(R.id.ph_lang);
         buttonLocation = view.findViewById(R.id.ph_get_loc);
-        editTextEmail = view.findViewById(R.id.user_email);
+        editTextEmail = view.findViewById(R.id.ph_email);
         editTextPassword = view.findViewById(R.id.ph_password);
         editTextConfirmPassword = view.findViewById(R.id.ph_confirm_password);
         editTextPhone = view.findViewById(R.id.ph_phone);
         buttonSingUP = view.findViewById(R.id.ph_sing_up);
         initializeUI();
-        buttonLocation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-            }
-        });
         buttonSingUP.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -65,9 +60,9 @@ public class PharmacySingUPFragment extends Fragment {
                     editTextPhName.setError(getString(R.string.no_name));
                     return;
 
-                } else if (TextUtils.isEmpty(editTextPhLat.getText()) && TextUtils.isEmpty(editTextPhLang.getText())) {
+                } else if (TextUtils.isEmpty(editTextPhLat.getText()) || TextUtils.isEmpty(editTextPhLang.getText())) {
                     editTextPhLat.setError(getString(R.string.no_lat));
-                    editTextPhLang.setError(getString(R.string.no_lang));
+                    editTextPhLang.setError(getString(R.string.no_long));
 
                 } else if ((!isValidEmail()) || (TextUtils.isEmpty(editTextEmail.getText()))) {
                     editTextEmail.setError(getString(R.string.error_invalid_email));
@@ -95,9 +90,9 @@ public class PharmacySingUPFragment extends Fragment {
                                     if (mFirebaseUser != null) {
                                         mReference.child("ph" + mFirebaseUser.getUid()).child("Name")
                                                 .setValue(editTextPhName.getText().toString());
-                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Location").child("Latitude")
+                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Latitude")
                                                 .setValue(editTextPhLat.getText().toString());
-                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Location").child("Longitude")
+                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Longitude")
                                                 .setValue(editTextPhLat.getText().toString());
                                         mReference.child("ph" + mFirebaseUser.getUid()).child("Phone")
                                                 .setValue(editTextPhone.getText().toString());

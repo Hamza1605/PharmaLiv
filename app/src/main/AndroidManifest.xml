@@ -12,6 +12,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
+    <uses-feature android:name="android.hardware.location.gps" />
+
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
@@ -21,34 +23,19 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning"
         tools:remove="android:appComponentFactory">
-        <activity android:name=".DeliveryManActivity"></activity>
-        <activity
-            android:name=".OrdersActivity"
-            android:label="Orders" />
-        <activity
-            android:name=".PharmacyActivity"
-            android:label="@string/title_activity_pharmacy"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".PharmacyListActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".ClientRequestActivity"></activity>
+        <activity android:name=".DeliveryMenActivity" />
+        <activity android:name=".ForgotPasswordActivity" />
+
+        <service android:name=".GPSService" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".MapsActivity"
-            android:label="@string/title_activity_maps" />
-        <activity
-            android:name=".SingUPActivity"
-            android:label="@string/action_sign_up"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".OrdinanceActivity"
-            android:theme="@style/AppTheme.NoActionBar1" />
-        <activity
-            android:name=".SingINActivity"
+            android:name=".LauncherActivity"
+            android:noHistory="true"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -57,11 +44,41 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".ClientsRequestsActivity"
+            android:label="@string/clients_requests" />
+        <activity
+            android:name=".DeliveryManActivity"
+            android:noHistory="true"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".OrdersActivity"
+            android:label="@string/my_orders" />
+        <activity
+            android:name=".PharmacyActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".PharmacyListActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".MapsActivity"
+            android:label="@string/title_activity_maps" />
+        <activity
+            android:name=".SignUPActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".OrdinanceActivity"
+            android:theme="@style/AppTheme.NoActionBar1" />
+        <activity
+            android:name=".SignINActivity"
+            android:noHistory="true"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
             android:name=".ScanActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".ClientActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:label="@string/home"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/AppTheme" />

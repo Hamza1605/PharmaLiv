@@ -38,8 +38,6 @@ public class ClientActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        auth = FirebaseAuth.getInstance();
-
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -51,8 +49,9 @@ public class ClientActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         userName = view.findViewById(R.id.user_name);
-        userEmail = view.findViewById(R.id.user_email);
+        userEmail = view.findViewById(R.id.ph_email);
 
+        auth = FirebaseAuth.getInstance();
         stateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -74,12 +73,12 @@ public class ClientActivity extends AppCompatActivity
                     });
                     userEmail.setText(user.getEmail());
                 } else {
-                    startActivity(new Intent(getApplicationContext(), SingINActivity.class));
+                    startActivity(new Intent(getApplicationContext(), SignINActivity.class));
                 }
             }
         };
 
-        Button buttonScan = findViewById(R.id.scan_ordinance);
+        Button buttonScan = findViewById(R.id.cl_orders);
         buttonScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -87,7 +86,7 @@ public class ClientActivity extends AppCompatActivity
             }
         });
 
-        Button buttonEnter = findViewById(R.id.enter_ordinance);
+        Button buttonEnter = findViewById(R.id.dl_list);
         buttonEnter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -126,10 +125,6 @@ public class ClientActivity extends AppCompatActivity
             case R.id.nav_orders:
                 startActivity(new Intent(ClientActivity.this, OrdersActivity.class)
                         .putExtra("Uid", "cl" + user.getUid()));
-                break;
-            case R.id.nav_address:
-                break;
-            case R.id.nav_search:
                 break;
             case R.id.nav_logout:
                 if (user != null){

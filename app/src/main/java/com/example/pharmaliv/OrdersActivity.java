@@ -47,7 +47,6 @@ public class OrdersActivity extends AppCompatActivity {
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     final String[] s = new String[1];
                     if ((Objects.equals(ds.child("Client").getValue(String.class), Uid))
@@ -64,13 +63,24 @@ public class OrdersActivity extends AppCompatActivity {
                                     }
                                 });
                         Toast.makeText(OrdersActivity.this, s[0], Toast.LENGTH_SHORT).show();
-                        orders.add(new Order(
-                                ds.getKey(),
-                                s[0],
-                                ds.child("Date").getValue(String.class),
-                                ds.child("Time").getValue(String.class),
-                                ds.child("State").getValue(String.class),
-                                ds.child("Note").getValue(String.class)));
+                        if (contains(ds.getKey(), orders) != orders.size()) {
+                            orders.add(contains(ds.getKey(), orders),
+                                    new Order(ds.getKey(),
+                                            s[0],
+                                            ds.child("Date").getValue(String.class),
+                                            ds.child("Time").getValue(String.class),
+                                            ds.child("State").getValue(String.class),
+                                            ds.child("Note").getValue(String.class),
+                                            ds.child("Total").getValue(String.class)));
+                        } else {
+                            orders.add(new Order(ds.getKey(),
+                                    s[0],
+                                    ds.child("Date").getValue(String.class),
+                                    ds.child("Time").getValue(String.class),
+                                    ds.child("State").getValue(String.class),
+                                    ds.child("Note").getValue(String.class),
+                                    ds.child("Total").getValue(String.class)));
+                        }
                         adapter.notifyDataSetChanged();
                     }
                 }
@@ -84,10 +94,10 @@ public class OrdersActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
-                if (orders.get(position).state == "1") {
+                if (orders.get(position).state.equals("1")) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(OrdersActivity.this)
                             .setTitle("")
-                            .setPositiveButton("Set Address", new DialogInterface.OnClickListener() {
+                            .setPositiveButton(getString(R.string.set_address), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     s = orders.get(position).ordinance;
@@ -120,60 +130,78 @@ public class OrdersActivity extends AppCompatActivity {
             reference.child(s).child("State").setValue("3");
         }
     }
-}
 
-class Order {
-
-    String ordinance;
-    String ph_Name;
-    String date;
-    String time;
-    String state;
-    String note;
-
-    Order(String ordinance, String ph_Name, String date, String time, String state, String note) {
-        this.ordinance = ordinance;
-        this.ph_Name = ph_Name;
-        this.date = date;
-        this.time = time;
-        this.state = state;
-        this.note = note;
-    }
-}
-
-class OrdersAdapter extends ArrayAdapter<Order> {
-
-    OrdersAdapter(@NonNull Context context, ArrayList<Order> orders) {
-        super(context, 0, orders);
+    public int contains(String s, ArrayList<Order> orders) {
+        int b = orders.size();
+        for (int i = 0; i < orders.size(); i++) {
+            if (orders.get(i).ordinance.equals(s)) {
+                b = i;
+            } else {
+                i++;
+            }
+        }
+        return b;
     }
 
-    @NonNull
-    @Override
-    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        View view = convertView;
-        if (view == null)
-            view = LayoutInflater.from(getContext()).inflate(R.layout.order_row, parent, false);
-        TextView ph_Name = view.findViewById(R.id.ord_ph_name);
-        TextView date = view.findViewById(R.id.ord_date);
-        TextView time = view.findViewById(R.id.ord_time);
-        TextView state = view.findViewById(R.id.ord_state);
-        TextView note = view.findViewById(R.id.ord_note);
-        ph_Name.setText(Objects.requireNonNull(getItem(position)).ph_Name);
-        date.setText(Objects.requireNonNull(getItem(position)).date);
-        time.setText(Objects.requireNonNull(getItem(position)).time);
-        note.setText(Objects.requireNonNull(getItem(position)).note);
-        switch (Objects.requireNonNull(getItem(position)).state) {
-            case "0":
-                state.setText(R.string.waiting_reply);
-                break;
-            case "1":
-                state.setText(R.string.accepted);
-                break;
-            case "2":
-                state.setText((R.string.declined));
-                break;
+    class Order {
+
+        String ordinance;
+        String ph_Name;
+        String date;
+        String time;
+        String state;
+        String note;
+        String total;
+
+        Order(String ordinance, String ph_Name, String date, String time, String state, String note, String total) {
+            this.ordinance = ordinance;
+            this.ph_Name = ph_Name;
+            this.date = date;
+            this.time = time;
+            this.state = state;
+            this.note = note;
+        }
+    }
+
+    class OrdersAdapter extends ArrayAdapter<Order> {
+
+        OrdersAdapter(@NonNull Context context, ArrayList<Order> orders) {
+            super(context, 0, orders);
         }
 
-        return view;
+        @NonNull
+        @Override
+        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            View view = convertView;
+            if (view == null)
+                view = LayoutInflater.from(getContext()).inflate(R.layout.order_row, parent, false);
+            TextView ph_Name = view.findViewById(R.id.ord_ph_name);
+            TextView date = view.findViewById(R.id.ord_date);
+            TextView time = view.findViewById(R.id.ord_time);
+            TextView state = view.findViewById(R.id.ord_state);
+            TextView total = view.findViewById(R.id.ord_total);
+            TextView note = view.findViewById(R.id.ord_note);
+            ph_Name.setText(Objects.requireNonNull(getItem(position)).ph_Name);
+            date.setText(Objects.requireNonNull(getItem(position)).date);
+            time.setText(Objects.requireNonNull(getItem(position)).time);
+            note.setText(Objects.requireNonNull(getItem(position)).note);
+            total.setText(Objects.requireNonNull(getItem(position)).total);
+
+            switch (Objects.requireNonNull(getItem(position)).state) {
+                case "0":
+                    state.setText(R.string.waiting_reply);
+                    break;
+                case "1":
+                    state.setText(R.string.accepted);
+                    break;
+                case "2":
+                    state.setText((R.string.declined));
+                    break;
+            }
+
+            return view;
+        }
     }
 }
+
+

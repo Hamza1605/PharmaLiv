@@ -44,7 +44,7 @@
         app:layout_constraintTop_toBottomOf="@+id/ord_ph_name" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/msg"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -66,7 +66,7 @@
         android:layout_marginEnd="16dp"
         android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView"
+        app:layout_constraintStart_toEndOf="@+id/msg"
         app:layout_constraintTop_toBottomOf="@+id/ord_date" />
 
     <TextView
@@ -81,6 +81,17 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
+        app:layout_constraintTop_toBottomOf="@+id/ord_total" />
+
+    <TextView
+        android:id="@+id/ord_total"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/msg" />
 
 </android.support.constraint.ConstraintLayout>

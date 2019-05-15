@@ -140,40 +140,41 @@ public class DeliveryManActivity extends AppCompatActivity {
         super.onStop();
         auth.removeAuthStateListener(stateListener);
     }
-}
 
-class Mission {
-    String orderID;
-    String clientID;
-    String pharmacyID;
-    String latitude;
-    String langitude;
 
-    Mission(String orderID, String clientID, String pharmacyID, String latitude, String langitude) {
-        this.orderID = orderID;
-        this.clientID = clientID;
-        this.pharmacyID = pharmacyID;
-        this.latitude = latitude;
-        this.langitude = langitude;
-    }
-}
+    class Mission {
+        String orderID;
+        String clientID;
+        String pharmacyID;
+        String latitude;
+        String langitude;
 
-class MissionAdapter extends ArrayAdapter<Mission> {
-
-    public MissionAdapter(@NonNull Context context, @NonNull ArrayList<Mission> missions) {
-        super(context, 0, missions);
+        Mission(String orderID, String clientID, String pharmacyID, String latitude, String langitude) {
+            this.orderID = orderID;
+            this.clientID = clientID;
+            this.pharmacyID = pharmacyID;
+            this.latitude = latitude;
+            this.langitude = langitude;
+        }
     }
 
-    @NonNull
-    @Override
-    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        View view = convertView;
-        if (view == null)
-            view = LayoutInflater.from(getContext()).inflate(R.layout.order, parent, false);
-        TextView ph_name = view.findViewById(R.id.m_ph_name);
-        TextView cl_name = view.findViewById(R.id.m_cl_name);
-        ph_name.setText(Objects.requireNonNull(getItem(position)).pharmacyID);
-        cl_name.setText(Objects.requireNonNull(getItem(position)).clientID);
-        return view;
+    class MissionAdapter extends ArrayAdapter<Mission> {
+
+        public MissionAdapter(@NonNull Context context, @NonNull ArrayList<Mission> missions) {
+            super(context, 0, missions);
+        }
+
+        @NonNull
+        @Override
+        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            View view = convertView;
+            if (view == null)
+                view = LayoutInflater.from(getContext()).inflate(R.layout.order, parent, false);
+            TextView ph_name = view.findViewById(R.id.m_ph_name);
+            TextView cl_name = view.findViewById(R.id.m_cl_name);
+            ph_name.setText(Objects.requireNonNull(getItem(position)).pharmacyID);
+            cl_name.setText(Objects.requireNonNull(getItem(position)).clientID);
+            return view;
+        }
     }
 }

@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.example.pharmaliv.SingUPActivity">
+    tools:context="com.example.pharmaliv.SignUPActivity">
 
     <item
         android:id="@+id/action_sing_in"

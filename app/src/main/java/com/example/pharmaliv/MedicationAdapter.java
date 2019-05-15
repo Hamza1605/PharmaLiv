@@ -27,8 +27,8 @@ class MedicationAdapter extends ArrayAdapter<Medication> {
                     , parent, false);
         TextView name = view.findViewById(android.R.id.text1);
         TextView quntity = view.findViewById(android.R.id.text2);
-        name.setText(Objects.requireNonNull(getItem(position)).name);
-        quntity.setText(Objects.requireNonNull(getItem(position)).quantity);
+        name.setText(Objects.requireNonNull(getItem(position)).getName());
+        quntity.setText(String.valueOf(Objects.requireNonNull(getItem(position)).getQuantity()));
         return view;
     }
 }

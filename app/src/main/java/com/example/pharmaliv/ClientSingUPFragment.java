@@ -26,7 +26,8 @@ import java.util.Objects;
 
 public class ClientSingUPFragment extends Fragment {
 
-    private EditText editTextFirstName, editTextFamilyName, editTextEmail, editTextPassword, editTextConfirmPassword, editTextPhone;
+    private EditText editTextFirstName, editTextFamilyName, editTextEmail, editTextPassword,
+            editTextConfirmPassword, editTextPhone;
     private ProgressDialog mProgressDialog;
     private FirebaseAuth mFirebaseAuth;
     private DatabaseReference mReference;
@@ -80,15 +81,22 @@ public class ClientSingUPFragment extends Fragment {
                                 if (task.isSuccessful()) {
                                     mFirebaseUser = mFirebaseAuth.getCurrentUser();
                                     if (mFirebaseUser != null) {
-                                        mReference.child("cl" + mFirebaseUser.getUid()).child("First Name").setValue(editTextFirstName.getText().toString());
-                                        mReference.child("cl" + mFirebaseUser.getUid()).child("Family Name").setValue(editTextFamilyName.getText().toString());
-                                        mReference.child("cl" + mFirebaseUser.getUid()).child("Phone").setValue(editTextPhone.getText().toString());
-                                        mReference.child("cl" + mFirebaseUser.getUid()).child("Login ID").setValue(mFirebaseUser.getUid());
-                                        Toast.makeText(getContext(), getString(R.string.sing_up_successful), Toast.LENGTH_SHORT).show();
+                                        mReference.child("cl" + mFirebaseUser.getUid()).child("First Name")
+                                                .setValue(editTextFirstName.getText().toString());
+                                        mReference.child("cl" + mFirebaseUser.getUid()).child("Family Name")
+                                                .setValue(editTextFamilyName.getText().toString());
+                                        mReference.child("cl" + mFirebaseUser.getUid()).child("Phone")
+                                                .setValue(editTextPhone.getText().toString());
+                                        mReference.child("cl" + mFirebaseUser.getUid()).child("Login ID")
+                                                .setValue(mFirebaseUser.getUid());
+                                        Toast.makeText(getContext(), getString(R.string.sing_up_successful),
+                                                Toast.LENGTH_SHORT).show();
                                         startActivity(new Intent(getContext(), ClientActivity.class));
                                     }
                                 } else {
-                                    Toast.makeText(getContext(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(),
+                                            Objects.requireNonNull(task.getException()).getMessage(),
+                                            Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });

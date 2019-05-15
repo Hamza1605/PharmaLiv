@@ -26,21 +26,51 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.Objects;
 
-public class SingINActivity extends AppCompatActivity {
+public class SignINActivity extends AppCompatActivity {
 
     private EditText editTextEmail, editTextPassword;
-    private Button buttonSingIN, buttonSingUP;
+    private TextView textViewSingUP;
+    private Button buttonSingIN;
     private TextView textViewForgotPassword;
     private ProgressDialog mProgressDialog;
-    private FirebaseAuth mFirebaseAuth;
+    private FirebaseAuth auth;
     private FirebaseAuth.AuthStateListener stateListener;
-    private FirebaseUser mFirebaseUser;
+    private FirebaseUser user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sing_in);
+
         initializeUI();
+
+        stateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                user = auth.getCurrentUser();
+                if (user != null) {
+                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+                    reference.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.child("Client").hasChild("cl" + user.getUid())) {
+                                startActivity(new Intent(SignINActivity.this, ClientActivity.class));
+                            } else if (dataSnapshot.child("Pharmacy").hasChild("ph" + user.getUid())) {
+                                startActivity(new Intent(SignINActivity.this, PharmacyActivity.class));
+                            } else if (dataSnapshot.child("Delivery Man").hasChild("dl" + user.getUid())) {
+                                startActivity(new Intent(SignINActivity.this, ClientActivity.class));
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+                    finish();
+                }
+            }
+        };
 
         buttonSingIN.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,91 +85,53 @@ public class SingINActivity extends AppCompatActivity {
                 mProgressDialog.setMessage(getString(R.string.logging_in));
                 mProgressDialog.setIndeterminate(true);
                 mProgressDialog.show();
-                mFirebaseAuth.signInWithEmailAndPassword(editTextEmail.getText().toString(), editTextPassword.getText().toString())
+                auth.signInWithEmailAndPassword(editTextEmail.getText().toString(), editTextPassword.getText().toString())
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
+                                mProgressDialog.dismiss();
                                 if (task.isSuccessful()) {
-                                    mProgressDialog.dismiss();
-                                    mFirebaseUser = mFirebaseAuth.getCurrentUser();
                                     Toast.makeText(getApplicationContext(), getString(R.string.sing_in_successful),
                                             Toast.LENGTH_SHORT).show();
+                                    auth.addAuthStateListener(stateListener);
                                 } else {
-                                    mProgressDialog.dismiss();
-                                    Toast.makeText(getApplicationContext(), Objects.requireNonNull(task.getException()).getMessage(),
+                                    Toast.makeText(SignINActivity.this,
+                                            Objects.requireNonNull(task.getException()).getMessage(),
                                             Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });
             }
         });
-        buttonSingUP.setOnClickListener(new View.OnClickListener() {
+        textViewSingUP.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(), SingUPActivity.class));
+                startActivity(new Intent(getApplicationContext(), SignUPActivity.class));
+
             }
         });
 
         textViewForgotPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(SingINActivity.this, ForgotPasswordFragment.class));
+                startActivity(new Intent(SignINActivity.this, ForgotPasswordActivity.class));
             }
         });
-
-        stateListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                mFirebaseUser = mFirebaseAuth.getCurrentUser();
-                if (mFirebaseUser != null) {
-                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-                    reference.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.child("Client").hasChild("cl" + mFirebaseUser.getUid())) {
-                                Intent intent = new Intent(SingINActivity.this, ClientActivity.class);
-                                intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
-                                startActivity(intent);
-                            } else if (dataSnapshot.child("Pharmacy").hasChild("ph" + mFirebaseUser.getUid())) {
-                                Intent intent = new Intent(SingINActivity.this, PharmacyActivity.class);
-                                intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
-                                startActivity(intent);
-                            } else if (dataSnapshot.child("Delivery Man").hasChild("dl" + mFirebaseUser.getUid())) {
-                                Intent intent = new Intent(SingINActivity.this, ClientActivity.class);
-                                intent.setFlags(intent.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
-                                startActivity(intent);
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                        }
-                    });
-                }
-            }
-        };
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        mFirebaseAuth.addAuthStateListener(stateListener);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mFirebaseAuth.removeAuthStateListener(stateListener);
+    protected void onDestroy() {
+        super.onDestroy();
+        auth.removeAuthStateListener(stateListener);
     }
 
     private void initializeUI() {
-        mFirebaseAuth = FirebaseAuth.getInstance();
-        editTextEmail = findViewById(R.id.user_email);
+        auth = FirebaseAuth.getInstance();
+        editTextEmail = findViewById(R.id.ph_email);
         editTextPassword = findViewById(R.id.password);
         textViewForgotPassword = findViewById(R.id.forgot_password);
         buttonSingIN = findViewById(R.id.sign_in);
-        buttonSingUP = findViewById(R.id.sing_up);
+        textViewSingUP = findViewById(R.id.sign_up);
         mProgressDialog = new ProgressDialog(this);
     }
 

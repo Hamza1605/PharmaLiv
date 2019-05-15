@@ -10,14 +10,18 @@
     tools:showIn="@layout/app_bar_main">
 
     <Button
-        android:id="@+id/scan_ordinance"
+        android:id="@+id/cl_orders"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="50dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="50dp"
         android:layout_marginBottom="32dp"
+        android:background="@drawable/buttons_design"
+        android:textColor="@android:color/holo_blue_dark"
         android:text="@string/scan_ordinance"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -25,15 +29,20 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/enter_ordinance"
+        android:id="@+id/dl_list"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="50dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="50dp"
+        android:background="@drawable/buttons_design"
+        android:textColor="@android:color/holo_blue_dark"
         android:text="@string/enter_ordinance"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scan_ordinance" />
+        app:layout_constraintTop_toBottomOf="@+id/cl_orders" />
 </android.support.constraint.ConstraintLayout>
