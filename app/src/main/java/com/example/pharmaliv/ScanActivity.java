@@ -150,7 +150,7 @@ public class ScanActivity extends AppCompatActivity {
 
                 }
             });
-            dbRef.child("image").setValue(sRef.getName());
+            dbRef.child("image").setValue(sRef.getPath());
         } else {
             Toast.makeText(getApplicationContext(), "No pharmacy selected", Toast.LENGTH_SHORT).show();
         }

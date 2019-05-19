@@ -38,9 +38,9 @@ public class ClientsRequestsActivity extends AppCompatActivity {
         final ArrayList<ClientRequest> clientRequests = new ArrayList<>();
         final RequestAdapter requestAdapter = new RequestAdapter(ClientsRequestsActivity.this, clientRequests);
         ListView listView = findViewById(R.id.requests_list);
+        ordinanceReference = FirebaseDatabase.getInstance().getReference().child("Ordinance");
         listView.setAdapter(requestAdapter);
         user = FirebaseAuth.getInstance().getCurrentUser();
-        ordinanceReference = FirebaseDatabase.getInstance().getReference().child("Ordinance");
         ordinanceReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -64,7 +64,7 @@ public class ClientsRequestsActivity extends AppCompatActivity {
                             clientRequests.add(new ClientRequest(
                                     ds.getKey(),
                                     ds.child("Client").getValue(String.class),
-                                    null,
+                                    ds.child("State").getValue(String.class),
                                     ds.child("Date").getValue(String.class),
                                     ds.child("Time").getValue(String.class),
                                     ds.child("Address").exists(),

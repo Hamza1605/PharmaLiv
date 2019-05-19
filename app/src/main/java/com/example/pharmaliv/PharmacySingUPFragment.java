@@ -27,30 +27,25 @@ import java.util.Objects;
 
 public class PharmacySingUPFragment extends Fragment {
 
-    private EditText editTextPhName, editTextPhLat, editTextPhLang, editTextEmail, editTextPassword, editTextConfirmPassword, editTextPhone;
-    private Button buttonSingUP, buttonLocation;
+    private EditText editTextPhName, editTextPhLat, editTextPhLng, editTextEmail, editTextPassword, editTextConfirmPassword, editTextPhone;
     private ProgressDialog mProgressDialog;
     private FirebaseAuth mFirebaseAuth;
     private DatabaseReference mReference;
     private FirebaseUser mFirebaseUser;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_pharmacy_sing_up, container, false);
         editTextPhName = view.findViewById(R.id.ph_name);
         editTextPhLat = view.findViewById(R.id.ph_lat);
-        editTextPhLang = view.findViewById(R.id.ph_lang);
-        buttonLocation = view.findViewById(R.id.ph_get_loc);
+        editTextPhLng = view.findViewById(R.id.ph_lang);
         editTextEmail = view.findViewById(R.id.ph_email);
         editTextPassword = view.findViewById(R.id.ph_password);
         editTextConfirmPassword = view.findViewById(R.id.ph_confirm_password);
         editTextPhone = view.findViewById(R.id.ph_phone);
-        buttonSingUP = view.findViewById(R.id.ph_sing_up);
+        Button buttonSingUP = view.findViewById(R.id.ph_sing_up);
+        Button buttonLocation = view.findViewById(R.id.ph_get_loc);
+
         initializeUI();
 
         buttonSingUP.setOnClickListener(new View.OnClickListener() {
@@ -60,9 +55,9 @@ public class PharmacySingUPFragment extends Fragment {
                     editTextPhName.setError(getString(R.string.no_name));
                     return;
 
-                } else if (TextUtils.isEmpty(editTextPhLat.getText()) || TextUtils.isEmpty(editTextPhLang.getText())) {
+                } else if (TextUtils.isEmpty(editTextPhLat.getText()) || TextUtils.isEmpty(editTextPhLng.getText())) {
                     editTextPhLat.setError(getString(R.string.no_lat));
-                    editTextPhLang.setError(getString(R.string.no_long));
+                    editTextPhLng.setError(getString(R.string.no_long));
 
                 } else if ((!isValidEmail()) || (TextUtils.isEmpty(editTextEmail.getText()))) {
                     editTextEmail.setError(getString(R.string.error_invalid_email));
@@ -80,32 +75,8 @@ public class PharmacySingUPFragment extends Fragment {
                 mProgressDialog.setMessage(getString(R.string.singing_up));
                 mProgressDialog.setIndeterminate(true);
                 mProgressDialog.show();
-                mFirebaseAuth.createUserWithEmailAndPassword(editTextEmail.getText().toString(), editTextPassword.getText().toString())
-                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                mProgressDialog.dismiss();
-                                if (task.isSuccessful()) {
-                                    mFirebaseUser = mFirebaseAuth.getCurrentUser();
-                                    if (mFirebaseUser != null) {
-                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Name")
-                                                .setValue(editTextPhName.getText().toString());
-                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Latitude")
-                                                .setValue(editTextPhLat.getText().toString());
-                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Longitude")
-                                                .setValue(editTextPhLat.getText().toString());
-                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Phone")
-                                                .setValue(editTextPhone.getText().toString());
-                                        mReference.child("ph" + mFirebaseUser.getUid()).child("Login ID")
-                                                .setValue(mFirebaseUser.getUid());
-                                        Toast.makeText(getContext(), getString(R.string.sing_up_successful), Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(getContext(), PharmacyActivity.class));
-                                    }
-                                } else {
-                                    Toast.makeText(getContext(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
+
+                signUp();
             }
         });
         buttonLocation.setOnClickListener(new View.OnClickListener() {
@@ -121,6 +92,41 @@ public class PharmacySingUPFragment extends Fragment {
         mFirebaseAuth = FirebaseAuth.getInstance();
         mReference = FirebaseDatabase.getInstance().getReference().child("Pharmacy");
         mProgressDialog = new ProgressDialog(getContext());
+    }
+
+    public void signUp() {
+        mFirebaseAuth.createUserWithEmailAndPassword(editTextEmail.getText().toString(), editTextPassword.getText().toString())
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        mProgressDialog.dismiss();
+                        if (task.isSuccessful()) {
+                            mFirebaseUser = mFirebaseAuth.getCurrentUser();
+                            if (mFirebaseUser != null) {
+                                Pharmacy pharmacy = new Pharmacy(
+                                        mFirebaseUser.getUid(),
+                                        editTextPhName.getText().toString(),
+                                        Double.parseDouble(editTextPhLat.getText().toString()),
+                                        Double.parseDouble(editTextPhLng.getText().toString()),
+                                        editTextPhone.getText().toString());
+                                mReference.child("ph" + mFirebaseUser.getUid()).child("Name")
+                                        .setValue(pharmacy.getName());
+                                mReference.child("ph" + mFirebaseUser.getUid()).child("Latitude")
+                                        .setValue(pharmacy.getLatitude());
+                                mReference.child("ph" + mFirebaseUser.getUid()).child("Longitude")
+                                        .setValue(pharmacy.getLongitude());
+                                mReference.child("ph" + mFirebaseUser.getUid()).child("Phone")
+                                        .setValue(pharmacy.getPhone());
+                                mReference.child("ph" + mFirebaseUser.getUid()).child("Login ID")
+                                        .setValue(pharmacy.getLoginID());
+                                Toast.makeText(getContext(), getString(R.string.sing_up_successful), Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(getContext(), PharmacyActivity.class));
+                            }
+                        } else {
+                            Toast.makeText(getContext(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 
     public boolean isValidEmail() {
@@ -140,7 +146,7 @@ public class PharmacySingUPFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == Activity.RESULT_OK){
             editTextPhLat.setText(String.valueOf(data.getDoubleExtra("latitude", 0)));
-            editTextPhLang.setText(String.valueOf(data.getDoubleExtra("longitude", 0)));
+            editTextPhLng.setText(String.valueOf(data.getDoubleExtra("longitude", 0)));
         }
     }
 }

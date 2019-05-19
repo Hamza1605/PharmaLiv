@@ -58,6 +58,7 @@ public class DeliveryMenActivity extends AppCompatActivity {
 
             }
         });
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -69,7 +70,6 @@ public class DeliveryMenActivity extends AppCompatActivity {
             }
         });
     }
-
 
     class DeliveryMan {
         String dlID;
