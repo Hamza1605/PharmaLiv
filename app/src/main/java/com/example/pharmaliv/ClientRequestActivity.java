@@ -64,7 +64,7 @@ public class ClientRequestActivity extends AppCompatActivity {
 
         if ((getIntent().getStringExtra("req_state").equals("3"))) {
             accept.setText(getString(R.string.select_delivery));
-            total.setVisibility(View.INVISIBLE);
+            total.setVisibility(View.GONE);
         }
 
         download();
@@ -99,10 +99,9 @@ public class ClientRequestActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()) {
-                            String[] s = new String[1];
-                            s[0] = dataSnapshot.child("Family Name").getValue(String.class) + " " +
-                                    dataSnapshot.child("First Name").getValue(String.class);
-                            clName.setText(s[0]);
+                            Client client = dataSnapshot.getValue(Client.class);
+                            String s = Objects.requireNonNull(client).getFamily_Name() + " " + client.getFirst_Name();
+                            clName.setText(s);
                         }
                     }
 
@@ -112,7 +111,7 @@ public class ClientRequestActivity extends AppCompatActivity {
                 });
 
 
-        ordinanceReference = FirebaseDatabase.getInstance().getReference().child("Ordinance")
+        ordinanceReference = FirebaseDatabase.getInstance().getReference().child("Prescription")
                 .child(getIntent().getStringExtra("req_ID"));
         ordinanceReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -123,10 +122,10 @@ public class ClientRequestActivity extends AppCompatActivity {
                         medications.add(new Medication(ds.getKey(), ds.getValue(Integer.class)));
                         medicationAdapter.notifyDataSetChanged();
                     }
-                } else if (dataSnapshot.child("image").exists()) {
-                    String s = Objects.requireNonNull(dataSnapshot.child("image").getValue(String.class));
+                } else {
                     req_img.setVisibility(View.VISIBLE);
-                    StorageReference imageReference = FirebaseStorage.getInstance().getReference().child(s);
+                    StorageReference imageReference = FirebaseStorage.getInstance().getReference()
+                            .child("Prescription").child(getIntent().getStringExtra("req_ID"));
                     final long ONE_MEGABYTE = 1024 * 1024;
                     imageReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
                         @Override
@@ -152,8 +151,8 @@ public class ClientRequestActivity extends AppCompatActivity {
 
     public void accept() {
         if (!TextUtils.isEmpty(total.getText().toString())) {
-            ordinanceReference.child("State").setValue("1");
-            ordinanceReference.child("Total").setValue(total.getText().toString() + " DA");
+            ordinanceReference.child("state").setValue("1");
+            ordinanceReference.child("total").setValue(total.getText().toString());
             total.setVisibility(View.INVISIBLE);
             final EditText editText = new EditText(ClientRequestActivity.this);
             AlertDialog dialog = new AlertDialog.Builder(ClientRequestActivity.this)
@@ -163,7 +162,7 @@ public class ClientRequestActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             if (!TextUtils.isEmpty(editText.getText().toString()))
-                                ordinanceReference.child("Note Client").setValue(editText.getText().toString());
+                                ordinanceReference.child("client_Note").setValue(editText.getText().toString());
                         }
                     })
                     .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
@@ -176,10 +175,12 @@ public class ClientRequestActivity extends AppCompatActivity {
             dialog.show();
             accept.setEnabled(false);
             decline.setEnabled(false);
+            total.setVisibility(View.GONE);
         } else {
             total.setError(getString(R.string.put_total));
         }
         if ((getIntent().getStringExtra("req_state").equals("3"))) {
+            ordinanceReference.child("state").setValue("5");
             Intent intent = new Intent(ClientRequestActivity.this, DeliveryMenActivity.class);
             intent.putExtra("send", 1);
             startActivityForResult(intent, 1);
@@ -188,7 +189,7 @@ public class ClientRequestActivity extends AppCompatActivity {
 
     public void decline() {
         if ((getIntent().getStringExtra("req_state").equals("0"))) {
-            ordinanceReference.child("State").setValue("2");
+            ordinanceReference.child("state").setValue("2");
             final EditText editText = new EditText(ClientRequestActivity.this);
             AlertDialog dialog = new AlertDialog.Builder(ClientRequestActivity.this)
                     .setTitle(getString(R.string.set_note))
@@ -198,7 +199,7 @@ public class ClientRequestActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
 
                             if (!TextUtils.isEmpty(editText.getText().toString())) {
-                                ordinanceReference.child("Note Client").setValue(editText.getText().toString());
+                                ordinanceReference.child("client_Note").setValue(editText.getText().toString());
                             }
                         }
                     })
@@ -210,11 +211,13 @@ public class ClientRequestActivity extends AppCompatActivity {
                     })
                     .create();
             dialog.show();
-            accept.setEnabled(false);
-            decline.setEnabled(false);
+
+            total.setVisibility(View.GONE);
         } else if ((getIntent().getStringExtra("req_state").equals("3"))) {
-            ordinanceReference.child("State").setValue("5");
+            ordinanceReference.child("state").setValue("6");
         }
+        accept.setEnabled(false);
+        decline.setEnabled(false);
     }
 
     public void showImage() {

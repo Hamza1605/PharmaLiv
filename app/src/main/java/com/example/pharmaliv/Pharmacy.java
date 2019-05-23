@@ -16,6 +16,8 @@ public class Pharmacy {
         this.phone = phone;
     }
 
+    public Pharmacy() {
+    }
 
     public String getLoginID() {
         return loginID;

@@ -46,10 +46,11 @@ public class DeliveryMenActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    deliveryMen.add(new DeliveryMan("dl" + ds.child("Login ID").getValue(String.class),
-                            ds.child("Family Name").getValue(String.class) + " " +
-                                    ds.child("First Name").getValue(String.class)));
-                    adapter.notifyDataSetChanged();
+                    DeliveryMan deliveryMan = ds.getValue(DeliveryMan.class);
+                    if (Objects.requireNonNull(deliveryMan).getState().equals("0")) {
+                        deliveryMen.add(deliveryMan);
+                        adapter.notifyDataSetChanged();
+                    }
                 }
             }
 
@@ -64,40 +65,20 @@ public class DeliveryMenActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (getIntent().getIntExtra("send", 0) == 1) {
                     Intent intent = DeliveryMenActivity.this.getIntent();
-                    intent.putExtra("Delivery Man", deliveryMen.get(position).dlID);
+                    intent.putExtra("Delivery Man", "dl" + deliveryMen.get(position).getLogin_ID());
                     DeliveryMenActivity.this.setResult(RESULT_OK, intent);
                 }
             }
         });
     }
 
-    class DeliveryMan {
-        String dlID;
-        String dlName;
-        Double Latitude;
-        Double Longitude;
 
-        DeliveryMan(String dlID, String dlName, Double Latitude, Double Longitude) {
-            this.dlID = dlID;
-            this.dlName = dlName;
-            this.Latitude = Latitude;
-            this.Longitude = Longitude;
-        }
 
-        DeliveryMan(String dlID, String dlName) {
-            this.dlID = dlID;
-            this.dlName = dlName;
-            this.Latitude = 0.0;
-            this.Longitude = 0.0;
-        }
-    }
+
 
     class DeliveryManAdapter extends ArrayAdapter<DeliveryMan> {
 
         private Context context;
-        private Double Latitude;
-        private Double Longitude;
-
 
         DeliveryManAdapter(@NonNull Context context, ArrayList<DeliveryMan> deliveryMen) {
             super(context, 0, deliveryMen);
@@ -108,33 +89,15 @@ public class DeliveryMenActivity extends AppCompatActivity {
         @Override
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
 
-            Geocoder geocoder = new Geocoder(context, Locale.getDefault());
-            List<Address> addresses = null;
             View view = convertView;
             if (view == null) {
                 view = LayoutInflater.from(getContext()).inflate(android.R.layout.simple_list_item_2, parent, false);
                 TextView dlName = view.findViewById(android.R.id.text1);
                 TextView dlLocation = view.findViewById(android.R.id.text2);
-                dlName.setText(Objects.requireNonNull(getItem(position)).dlName);
-                float[] v = new float[1];
-                Location.distanceBetween(Latitude, Longitude,
-                        Objects.requireNonNull(getItem(position)).Latitude,
-                        Objects.requireNonNull(getItem(position)).Longitude, v);
-                try {
-                    addresses = geocoder.getFromLocation(
-                            Objects.requireNonNull(getItem(position)).Latitude,
-                            Objects.requireNonNull(getItem(position)).Longitude, 1);
-                } catch (IOException e1) {
-                    dlLocation.setText(dlLocation.getText().toString() + R.string.service_not_available);
-                } catch (IllegalArgumentException e2) {
-                    dlLocation.setText(dlLocation.getText().toString() + R.string.invalid_information);
-                }
-                if ((addresses != null ? addresses.size() : 0) != 0) {
-                    Address address = addresses.get(0);
-                    dlLocation.setText(address.getAddressLine(0));
-                } else
-                    dlLocation.setText(dlLocation.getText().toString() + R.string.address_not_found);
-                dlLocation.setText(Arrays.toString(v));
+                String s = Objects.requireNonNull(getItem(position)).getFamily_Name() + " " +
+                        Objects.requireNonNull(getItem(position)).getFirst_Name();
+                dlName.setText(s);
+                dlLocation.setText("");
             }
             return view;
         }

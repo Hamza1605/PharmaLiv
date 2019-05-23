@@ -71,27 +71,7 @@ public class DeliverySingUPFragment extends Fragment {
                 mProgressDialog.setMessage(getString(R.string.singing_up));
                 mProgressDialog.setIndeterminate(true);
                 mProgressDialog.show();
-                mFirebaseAuth.createUserWithEmailAndPassword(editTextEmail.getText().toString(), editTextPassword.getText().toString())
-                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                mProgressDialog.dismiss();
-                                if (task.isSuccessful()) {
-                                    mFirebaseUser = mFirebaseAuth.getCurrentUser();
-                                    if (mFirebaseUser != null){
-                                        mReference.child("dl"+mFirebaseUser.getUid()).child("First Name").setValue(editTextFirstName.getText().toString());
-                                        mReference.child("dl"+mFirebaseUser.getUid()).child("Family Name").setValue(editTextFamilyName.getText().toString());
-                                        mReference.child("dl"+mFirebaseUser.getUid()).child("Phone").setValue(editTextPhone.getText().toString());
-                                        mReference.child("dl"+mFirebaseUser.getUid()).child("Login ID").setValue(mFirebaseUser.getUid());
-                                        mReference.child("dl" + mFirebaseUser.getUid()).child("Status").setValue("0");
-                                        Toast.makeText(getContext(), getString(R.string.sing_up_successful), Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(getContext(), ClientActivity.class));
-                                    }
-                                } else {
-                                    Toast.makeText(getContext(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
+                signUP();
             }
         });
         return view;
@@ -113,5 +93,30 @@ public class DeliverySingUPFragment extends Fragment {
 
     public boolean isValidPhone() {
         return Patterns.PHONE.matcher(editTextPhone.getText()).matches();
+    }
+
+    public void signUP() {
+        mFirebaseAuth.createUserWithEmailAndPassword(editTextEmail.getText().toString(), editTextPassword.getText().toString())
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        mProgressDialog.dismiss();
+                        if (task.isSuccessful()) {
+                            mFirebaseUser = mFirebaseAuth.getCurrentUser();
+                            if (mFirebaseUser != null) {
+                                DeliveryMan deliveryMan = new DeliveryMan(mFirebaseUser.getUid(),
+                                        editTextFirstName.getText().toString(),
+                                        editTextFamilyName.getText().toString(),
+                                        editTextPhone.getText().toString(),
+                                        "0");
+                                mReference.child("dl" + mFirebaseUser.getUid()).setValue(deliveryMan);
+                                Toast.makeText(getContext(), getString(R.string.sing_up_successful), Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(getContext(), ClientActivity.class));
+                            }
+                        } else {
+                            Toast.makeText(getContext(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 }

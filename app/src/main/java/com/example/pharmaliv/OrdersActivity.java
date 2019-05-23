@@ -20,6 +20,7 @@ import android.widget.DatePicker;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,8 +28,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 
@@ -36,7 +41,7 @@ public class OrdersActivity extends AppCompatActivity {
 
     private String s;
     private DatabaseReference reference;
-    private ArrayList<Order> orders;
+    private ArrayList<Prescription> orders;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,32 +50,20 @@ public class OrdersActivity extends AppCompatActivity {
         final String Uid = getIntent().getStringExtra("Uid");
         orders = new ArrayList<>();
         final OrdersAdapter adapter = new OrdersAdapter(this, orders);
-        reference = FirebaseDatabase.getInstance().getReference().child("Ordinance");
+        reference = FirebaseDatabase.getInstance().getReference().child("Prescription");
         ListView listView = findViewById(R.id.orders_list);
         listView.setAdapter(adapter);
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    if ((Objects.equals(ds.child("Client").getValue(String.class), Uid))
-                            && (!Objects.equals(ds.child("State").getValue(String.class), "3"))) {
+                    Prescription prescription = ds.getValue(Prescription.class);
+                    if ((Objects.equals(ds.child("client_ID").getValue(String.class), Uid))
+                            && (!Objects.equals(Objects.requireNonNull(ds.child("state").getValue()).toString(), "8"))) {
                         if (contains(ds.getKey(), orders) != orders.size()) {
-                            orders.set(contains(ds.getKey(), orders),
-                                    new Order(ds.getKey(),
-                                            ds.child("Pharmacy").getValue(String.class),
-                                            ds.child("Date").getValue(String.class),
-                                            ds.child("Time").getValue(String.class),
-                                            ds.child("State").getValue(String.class),
-                                            ds.child("Note").getValue(String.class),
-                                            ds.child("Total").getValue(String.class)));
+                            orders.set(contains(ds.getKey(), orders), prescription);
                         } else {
-                            orders.add(new Order(ds.getKey(),
-                                    ds.child("Pharmacy").getValue(String.class),
-                                    ds.child("Date").getValue(String.class),
-                                    ds.child("Time").getValue(String.class),
-                                    ds.child("State").getValue(String.class),
-                                    ds.child("Note").getValue(String.class),
-                                    ds.child("Total").getValue(String.class)));
+                            orders.add(prescription);
                         }
                         adapter.notifyDataSetChanged();
                     } else if (contains(ds.getKey(), orders) != orders.size()) {
@@ -85,10 +78,12 @@ public class OrdersActivity extends AppCompatActivity {
 
             }
         });
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
                 setAddress(position);
+                Toast.makeText(getApplicationContext(), orders.get(position).getState(), Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -97,20 +92,21 @@ public class OrdersActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 2 && resultCode == Activity.RESULT_OK) {
-            reference.child(s).child("Address").child("Latitude")
-                    .setValue(Objects.requireNonNull(data).getDoubleExtra("latitude", 0));
-            reference.child(s).child("Address").child("Longitude")
-                    .setValue(Objects.requireNonNull(data).getDoubleExtra("longitude", 0));
-            reference.child(s).child("State").setValue("3");
+            reference.child(s).child("latitude")
+                    .setValue(String.valueOf(Objects.requireNonNull(data).getDoubleExtra("latitude", 0)));
+            reference.child(s).child("longitude")
+                    .setValue(String.valueOf(Objects.requireNonNull(data).getDoubleExtra("longitude", 0)));
+            reference.child(s).child("state").setValue("3");
         }
-        setDateTime();
+        setDeliveryDateTime();
     }
 
-    public int contains(String s, ArrayList<Order> orders) {
+    public int contains(String s, ArrayList<Prescription> orders) {
         int b = orders.size();
         for (int i = 0; i < orders.size(); i++) {
-            if (orders.get(i).ordinance.equals(s)) {
+            if (orders.get(i).getId().equals(s)) {
                 b = i;
+                break;
             } else {
                 i++;
             }
@@ -118,43 +114,51 @@ public class OrdersActivity extends AppCompatActivity {
         return b;
     }
 
-    public void setDateTime() {
+    public void setDeliveryDateTime() {
 
         final Calendar c = Calendar.getInstance();
-        int mYear = c.get(Calendar.YEAR);
-        int mMonth = c.get(Calendar.MONTH);
-        int mDay = c.get(Calendar.DAY_OF_MONTH);
-        int mHour = c.get(Calendar.HOUR_OF_DAY);
-        int mMinute = c.get(Calendar.MINUTE);
-
         DatePickerDialog datePickerDialog = new DatePickerDialog(this,
                 new DatePickerDialog.OnDateSetListener() {
 
                     @Override
                     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-
+                        String s1 = null;
+                        if (monthOfYear < 10 && dayOfMonth < 10)
+                            s1 = year + "-0" + monthOfYear + "-0" + dayOfMonth;
+                        else if (monthOfYear < 10)
+                            s1 = year + "-0" + monthOfYear + "-" + dayOfMonth;
+                        else if (dayOfMonth < 10)
+                            s1 = year + "-0" + monthOfYear + "-" + dayOfMonth;
+                        reference.child(s).child("delivery_Date").setValue(s1);
                     }
-                }, mYear, mMonth, mDay);
+                }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
         datePickerDialog.show();
         TimePickerDialog timePickerDialog = new TimePickerDialog(this,
                 new TimePickerDialog.OnTimeSetListener() {
 
                     @Override
                     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-
+                        String s1 = null;
+                        if (hourOfDay < 10 && minute < 10)
+                            s1 = "0" + hourOfDay + ":0" + minute;
+                        else if (hourOfDay < 10)
+                            s1 = "0" + hourOfDay + ":" + minute;
+                        else if (minute < 10)
+                            s1 = hourOfDay + ":0" + minute;
+                        reference.child(s).child("delivery_Time").setValue(s1);
                     }
-                }, mHour, mMinute, true);
+                }, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), true);
         timePickerDialog.show();
     }
 
     public void setAddress(final int position) {
-        if (orders.get(position).state.equals("1")) {
+        if (orders.get(position).getState().equals("1")) {
             AlertDialog.Builder builder = new AlertDialog.Builder(OrdersActivity.this)
                     .setTitle("")
                     .setPositiveButton(getString(R.string.set_address), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            s = orders.get(position).ordinance;
+                            s = orders.get(position).getId();
                             startActivityForResult(new Intent(OrdersActivity.this,
                                     MapsActivity.class), 2);
                         }
@@ -170,29 +174,9 @@ public class OrdersActivity extends AppCompatActivity {
         }
     }
 
-    class Order {
+    class OrdersAdapter extends ArrayAdapter<Prescription> {
 
-        String ordinance;
-        String ph_ID;
-        String date;
-        String time;
-        String state;
-        String note;
-        String total;
-
-        Order(String ordinance, String ph_ID, String date, String time, String state, String note, String total) {
-            this.ordinance = ordinance;
-            this.ph_ID = ph_ID;
-            this.date = date;
-            this.time = time;
-            this.state = state;
-            this.note = note;
-        }
-    }
-
-    class OrdersAdapter extends ArrayAdapter<Order> {
-
-        OrdersAdapter(@NonNull Context context, ArrayList<Order> orders) {
+        OrdersAdapter(@NonNull Context context, ArrayList<Prescription> orders) {
             super(context, 0, orders);
         }
 
@@ -209,11 +193,11 @@ public class OrdersActivity extends AppCompatActivity {
             TextView total = view.findViewById(R.id.ord_total);
             TextView note = view.findViewById(R.id.ord_note);
             DatabaseReference reference1 = FirebaseDatabase.getInstance().getReference().child("Pharmacy");
-            reference1.child(Objects.requireNonNull(Objects.requireNonNull(getItem(position)).ph_ID))
+            reference1.child(Objects.requireNonNull(Objects.requireNonNull(getItem(position)).getPharmacy_ID()))
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            ph_Name.setText(dataSnapshot.child("Name").getValue(String.class));
+                            ph_Name.setText(dataSnapshot.child("name").getValue(String.class));
                         }
 
                         @Override
@@ -221,12 +205,14 @@ public class OrdersActivity extends AppCompatActivity {
                         }
                     });
             ;
-            date.setText(Objects.requireNonNull(getItem(position)).date);
-            time.setText(Objects.requireNonNull(getItem(position)).time);
-            note.setText(Objects.requireNonNull(getItem(position)).note);
-            total.setText(Objects.requireNonNull(getItem(position)).total);
+            date.setText(Objects.requireNonNull(getItem(position)).getSending_Date());
+            time.setText(Objects.requireNonNull(getItem(position)).getSending_Time());
+            if (Objects.requireNonNull(getItem(position)).getClient_Note() != null)
+                note.setText(Objects.requireNonNull(getItem(position)).getClient_Note());
+            if (Objects.requireNonNull(getItem(position)).getTotal() != null)
+                total.setText(Objects.requireNonNull(getItem(position)).getTotal() + " DA");
 
-            switch (Objects.requireNonNull(getItem(position)).state) {
+            switch (Objects.requireNonNull(getItem(position)).getState()) {
                 case "0":
                     state.setText(R.string.waiting_reply);
                     break;
@@ -237,7 +223,6 @@ public class OrdersActivity extends AppCompatActivity {
                     state.setText((R.string.declined));
                     break;
             }
-
             return view;
         }
     }

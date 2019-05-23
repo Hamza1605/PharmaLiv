@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -35,46 +36,29 @@ public class ClientsRequestsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_clients_requests);
 
-        final ArrayList<ClientRequest> clientRequests = new ArrayList<>();
-        final RequestAdapter requestAdapter = new RequestAdapter(ClientsRequestsActivity.this, clientRequests);
+        final ArrayList<Prescription> prescriptions = new ArrayList<>();
+        final RequestAdapter requestAdapter = new RequestAdapter(ClientsRequestsActivity.this, prescriptions);
         ListView listView = findViewById(R.id.requests_list);
-        ordinanceReference = FirebaseDatabase.getInstance().getReference().child("Ordinance");
+        ordinanceReference = FirebaseDatabase.getInstance().getReference().child("Prescription");
         listView.setAdapter(requestAdapter);
         user = FirebaseAuth.getInstance().getCurrentUser();
         ordinanceReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    if ((Objects.equals(ds.child("Pharmacy").getValue(String.class), "ph" + user.getUid()))
-                            && ((Objects.equals(ds.child("State").getValue(String.class), "0"))
-                            || (Objects.equals(ds.child("State").getValue(String.class), "3")))) {
-                        if (contains(ds.getKey(), clientRequests) != clientRequests.size()) {
-                            clientRequests.set(contains(ds.getKey(), clientRequests),
-                                    new ClientRequest(
-                                            ds.getKey(),
-                                            ds.child("Client").getValue(String.class),
-                                            ds.child("State").getValue(String.class),
-                                            ds.child("Date").getValue(String.class),
-                                            ds.child("Time").getValue(String.class),
-                                            ds.child("Address").exists(),
-                                            ds.child("Delivery Date").getValue(String.class) + " " +
-                                                    ds.child("Delivery Time").getValue(String.class)
-                                    ));
+                    Prescription prescription = ds.getValue(Prescription.class);
+                    if ((Objects.equals(Objects.requireNonNull(prescription).getPharmacy_ID(), "ph" + user.getUid()))
+                            && ((Objects.equals(prescription.getState(), "0"))
+                            || (Objects.equals(prescription.getState(), "3")))) {
+                        if (contains(ds.getKey(), prescriptions) != prescriptions.size()) {
+                            prescriptions.set(contains(ds.getKey(), prescriptions), prescription);
                         } else {
-                            clientRequests.add(new ClientRequest(
-                                    ds.getKey(),
-                                    ds.child("Client").getValue(String.class),
-                                    ds.child("State").getValue(String.class),
-                                    ds.child("Date").getValue(String.class),
-                                    ds.child("Time").getValue(String.class),
-                                    ds.child("Address").exists(),
-                                    ds.child("Delivery Date").getValue(String.class) + " " +
-                                            ds.child("Delivery Time").getValue(String.class)));
+                            prescriptions.add(prescription);
                         }
                         requestAdapter.notifyDataSetChanged();
                     } else {
-                        if (contains(ds.getKey(), clientRequests) != clientRequests.size()) {
-                            clientRequests.remove(contains(ds.getKey(), clientRequests));
+                        if (contains(ds.getKey(), prescriptions) != prescriptions.size()) {
+                            prescriptions.remove(contains(ds.getKey(), prescriptions));
                             requestAdapter.notifyDataSetChanged();
                         }
                     }
@@ -89,18 +73,19 @@ public class ClientsRequestsActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(ClientsRequestsActivity.this, ClientRequestActivity.class);
-                intent.putExtra("req_ID", clientRequests.get(position).req_ID);
-                intent.putExtra("req_client_ID", clientRequests.get(position).client_ID);
-                intent.putExtra("req_state", clientRequests.get(position).req_state);
+                intent.putExtra("req_ID", prescriptions.get(position).getId());
+                intent.putExtra("req_client_ID", prescriptions.get(position).getClient_ID());
+                intent.putExtra("req_state", String.valueOf(prescriptions.get(position).getState()));
+                intent.putExtra("req_total", String.valueOf(prescriptions.get(position).getTotal()));
                 startActivity(intent);
             }
         });
     }
 
-    public int contains(String s, ArrayList<ClientRequest> clientRequests) {
-        int b = clientRequests.size();
-        for (int i = 0; i < clientRequests.size(); i++) {
-            if (clientRequests.get(i).req_ID.equals(s)) {
+    public int contains(String s, ArrayList<Prescription> prescriptions) {
+        int b = prescriptions.size();
+        for (int i = 0; i < prescriptions.size(); i++) {
+            if (prescriptions.get(i).getId().equals(s)) {
                 b = i;
                 break;
             } else {
@@ -110,32 +95,10 @@ public class ClientsRequestsActivity extends AppCompatActivity {
         return b;
     }
 
-    class ClientRequest {
+    class RequestAdapter extends ArrayAdapter<Prescription> {
 
-        String req_ID;
-        String client_ID;
-        String req_state;
-        String req_date;
-        String req_time;
-        boolean req_add;
-        String req_del;
-
-        ClientRequest(String req_ID, String client_ID, String req_state, String req_date, String req_time,
-                      boolean req_add, String req_del) {
-            this.req_ID = req_ID;
-            this.client_ID = client_ID;
-            this.req_state = req_state;
-            this.req_date = req_date;
-            this.req_time = req_time;
-            this.req_add = req_add;
-            this.req_del = req_del;
-        }
-    }
-
-    class RequestAdapter extends ArrayAdapter<ClientRequest> {
-
-        RequestAdapter(@NonNull Context context, ArrayList<ClientRequest> medications) {
-            super(context, 0, medications);
+        RequestAdapter(@NonNull Context context, ArrayList<Prescription> prescriptions) {
+            super(context, 0, prescriptions);
         }
 
         @NonNull
@@ -153,15 +116,15 @@ public class ClientsRequestsActivity extends AppCompatActivity {
 
 
             DatabaseReference clientReference = FirebaseDatabase.getInstance().getReference("Client");
-            clientReference.child(Objects.requireNonNull(getItem(position)).client_ID)
+            clientReference.child(Objects.requireNonNull(getItem(position)).getClient_ID())
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
-                                String[] s = new String[1];
-                                s[0] = dataSnapshot.child("Family Name").getValue(String.class) + " " +
-                                        dataSnapshot.child("First Name").getValue(String.class);
-                                client_name.setText(s[0]);
+                                Client client = dataSnapshot.getValue(Client.class);
+                                String s = Objects.requireNonNull(client).getFamily_Name() + " " +
+                                        Objects.requireNonNull(client).getFirst_Name();
+                                client_name.setText(s);
                             }
                         }
 
@@ -170,13 +133,19 @@ public class ClientsRequestsActivity extends AppCompatActivity {
                         }
                     });
 
-            date.setText(Objects.requireNonNull(getItem(position)).req_date);
-            time.setText(Objects.requireNonNull(getItem(position)).req_time);
-            if (Objects.requireNonNull(getItem(position)).req_add) {
+            date.setText(Objects.requireNonNull(getItem(position)).getSending_Date());
+            time.setText(Objects.requireNonNull(getItem(position)).getSending_Time());
+            if (Objects.requireNonNull(getItem(position)).getLatitude() != null &&
+                    Objects.requireNonNull(getItem(position)).getLongitude() != null) {
                 add.setVisibility(View.VISIBLE);
                 add.setText(getString(R.string.address_def));
             }
-            del.setText(Objects.requireNonNull(getItem(position)).req_del);
+            if (Objects.requireNonNull(getItem(position)).getDelivery_Date() != null &&
+                    Objects.requireNonNull(getItem(position)).getDelivery_Date() != null) {
+                del.setVisibility(View.VISIBLE);
+                del.setText(Objects.requireNonNull(getItem(position)).getDelivery_Date() + " " +
+                        Objects.requireNonNull(getItem(position)).getDelivery_Time());
+            }
             return view;
         }
     }

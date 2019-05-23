@@ -50,6 +50,12 @@ public class LauncherActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        finish();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         auth.removeAuthStateListener(stateListener);
@@ -96,7 +102,6 @@ public class LauncherActivity extends AppCompatActivity {
             }
         };
         auth.addAuthStateListener(stateListener);
-        finish();
     }
 
     public void display() {

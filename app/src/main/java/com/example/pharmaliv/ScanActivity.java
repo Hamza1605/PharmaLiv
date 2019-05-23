@@ -3,27 +3,21 @@ package com.example.pharmaliv;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.Api;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
@@ -46,10 +40,10 @@ public class ScanActivity extends AppCompatActivity {
     private static final int GALLERY_REQUEST_CODE = 400;
     private static final int IMAGE_PICK_GALLERY_CODE = 1000;
     private static final int IMAGE_PICK_CAMERA_CODE = 1001;
+    private static final int PHARMACY_LIST_CODE = 50;
 
     private Uri uri, resultUri;
     private ImageView imageView;
-    private Location clientLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +66,7 @@ public class ScanActivity extends AppCompatActivity {
                     pickCamera();
             }
         });
+
         Button buttonGallery = findViewById(R.id.gallery);
         buttonGallery.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -83,16 +78,22 @@ public class ScanActivity extends AppCompatActivity {
                     pickGallery();
             }
         });
+
         Button buttonSelect = findViewById(R.id.selectscan);
         buttonSelect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (resultUri != null)
-                    startActivityForResult(new Intent(ScanActivity.this, PharmacyListActivity.class), 55);
-                else
-                    Toast.makeText(ScanActivity.this, getString(R.string.no_image), Toast.LENGTH_SHORT).show();
+                selectPharmacy();
             }
         });
+    }
+
+    void selectPharmacy() {
+        if (resultUri != null)
+            startActivityForResult(new Intent(ScanActivity.this, PharmacyListActivity.class),
+                    PHARMACY_LIST_CODE);
+        else
+            Toast.makeText(ScanActivity.this, getString(R.string.no_image), Toast.LENGTH_SHORT).show();
     }
 
     void pickCamera (){
@@ -135,22 +136,26 @@ public class ScanActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Date currentTime = Calendar.getInstance().getTime();
-        if (requestCode == 55 && resultCode == Activity.RESULT_OK) {
-            DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().child("Ordinance").push();
-            StorageReference sRef = FirebaseStorage.getInstance().getReference().child("Ordinance")
-                    .child(Objects.requireNonNull(dbRef.getKey()));
-            dbRef.child("Pharmacy").setValue(Objects.requireNonNull(data).getStringExtra("Ph_ID"));
-            dbRef.child("Client").setValue("cl" + Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid());
-            dbRef.child("State").setValue("0");
-            dbRef.child("Date").setValue(new SimpleDateFormat("mm-dd-yyyy", Locale.getDefault()).format(currentTime));
-            dbRef.child("Time").setValue(new SimpleDateFormat("HH:mm", Locale.getDefault()).format(currentTime));
+        if (requestCode == PHARMACY_LIST_CODE && resultCode == Activity.RESULT_OK) {
+            DatabaseReference prescriptionReference = FirebaseDatabase.getInstance().getReference().child("Prescription").push();
+            Prescription prescription = new Prescription(
+                    prescriptionReference.getKey(),
+                    "cl" + Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(),
+                    Objects.requireNonNull(data).getStringExtra("Ph_ID"),
+                    "0",
+                    new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(currentTime),
+                    new SimpleDateFormat("HH:mm", Locale.getDefault()).format(currentTime),
+                    null, null, null, null, null, null, null);
+
+            prescriptionReference.setValue(prescription);
+            StorageReference sRef = FirebaseStorage.getInstance().getReference().child("Prescription")
+                    .child(Objects.requireNonNull(prescriptionReference.getKey()));
             sRef.putFile(resultUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
                 }
             });
-            dbRef.child("image").setValue(sRef.getPath());
         } else {
             Toast.makeText(getApplicationContext(), "No pharmacy selected", Toast.LENGTH_SHORT).show();
         }

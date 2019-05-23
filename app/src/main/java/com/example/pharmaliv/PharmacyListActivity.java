@@ -22,6 +22,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -57,12 +58,7 @@ public class PharmacyListActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    pharmacyList.add(new Pharmacy(
-                            ds.child("Login ID").getValue(String.class),
-                            ds.child("Name").getValue(String.class),
-                            ds.child("Latitude").getValue(String.class),
-                            ds.child("Longitude").getValue(String.class)
-                    ));
+                    pharmacyList.add(ds.getValue(Pharmacy.class));
                     adapter.notifyDataSetChanged();
                 }
             }
@@ -81,7 +77,7 @@ public class PharmacyListActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Intent intent = PharmacyListActivity.this.getIntent();
-                                intent.putExtra("Ph_ID", "ph" + pharmacyList.get(position).ph_id);
+                                intent.putExtra("Ph_ID", "ph" + pharmacyList.get(position).getLoginID());
                                 PharmacyListActivity.this.setResult(RESULT_OK, intent);
                                 finish();
                             }
@@ -147,23 +143,9 @@ public class PharmacyListActivity extends AppCompatActivity {
         }
     }
 
-    class Pharmacy {
 
-        String ph_id;
-        String Name;
-        Double Latitude;
-        Double Longitude;
-
-        Pharmacy(String ph_id, String Name, String Latitude, String Longitude) {
-            this.ph_id = ph_id;
-            this.Name = Name;
-            this.Latitude = Double.parseDouble(Latitude);
-            this.Longitude = Double.parseDouble(Longitude);
-        }
-    }
 
     class PharmacyAdapter extends ArrayAdapter<Pharmacy> {
-
 
         private Location location;
 
@@ -185,11 +167,11 @@ public class PharmacyListActivity extends AppCompatActivity {
             float[] v = new float[1];
             if (location != null) {
                 Location.distanceBetween(location.getLatitude(), location.getLongitude(),
-                        Objects.requireNonNull(getItem(position)).Latitude,
-                        Objects.requireNonNull(getItem(position)).Longitude, v);
+                        Objects.requireNonNull(getItem(position)).getLatitude(),
+                        Objects.requireNonNull(getItem(position)).getLongitude(), v);
             }
 
-            pharmacy_name.setText(Objects.requireNonNull(getItem(position)).Name);
+            pharmacy_name.setText(Objects.requireNonNull(getItem(position)).getName());
             pharmacy_distance.setText(String.valueOf(v[0]));
             return view;
         }

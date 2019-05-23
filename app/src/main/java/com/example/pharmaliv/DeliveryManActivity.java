@@ -48,42 +48,42 @@ public class DeliveryManActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked)
-                    deliveryReference.child("dl" + user.getUid()).child("Status").setValue("0");
+                    deliveryReference.child("dl" + user.getUid()).child("state").setValue("0");
                 else
-                    deliveryReference.child("dl" + user.getUid()).child("Status").setValue("2");
+                    deliveryReference.child("dl" + user.getUid()).child("state").setValue("2");
             }
         });
-        final ArrayList<Mission> missions = new ArrayList<>();
-        final MissionAdapter adapter = new MissionAdapter(DeliveryManActivity.this, missions);
+        final ArrayList<Prescription> prescriptions = new ArrayList<>();
+        final MissionAdapter adapter = new MissionAdapter(DeliveryManActivity.this, prescriptions);
         ListView listView = findViewById(R.id.dlmissions);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(DeliveryManActivity.this, MissionFragment.class);
-                intent.putExtra("ph", missions.get(position).pharmacyID);
-                intent.putExtra("cl", missions.get(position).clientID);
-                intent.putExtra("lat", missions.get(position).latitude);
-                intent.putExtra("lng", missions.get(position).langitude);
-                intent.putExtra("order", missions.get(position).orderID);
+                intent.putExtra("ph", prescriptions.get(position).getPharmacy_ID());
+                intent.putExtra("cl", prescriptions.get(position).getClient_ID());
+
+                intent.putExtra("order", prescriptions.get(position).getId());
                 startActivity(intent);
             }
         });
 
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("Ordinance");
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("Prescription");
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot ds : dataSnapshot.getChildren())
-                    if ((Objects.equals(ds.child("Delivery Man").getValue(String.class), "dl" + user.getUid()))
-                            && (ds.child("Delivery Man").exists())) {
-                        missions.add(new Mission(ds.getKey(),
-                                ds.child("Client").getValue(String.class),
-                                ds.child("Pharmacy").getValue(String.class),
-                                ds.child("Address").child("Latitude").getValue(String.class),
-                                ds.child("Address").child("Longitude").getValue(String.class)));
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    Prescription prescription = ds.getValue(Prescription.class);
+                    if (Objects.requireNonNull(prescription).getDelivery_ID().equals("dl" + user.getUid())) {
+                        if (contains(prescription.getId(), prescriptions) != prescriptions.size()) {
+                            prescriptions.set(contains(prescription.getId(), prescriptions), prescription);
+                        } else {
+                            prescriptions.add(prescription);
+                        }
                         adapter.notifyDataSetChanged();
                     }
+                }
             }
 
             @Override
@@ -102,20 +102,21 @@ public class DeliveryManActivity extends AppCompatActivity {
                     reference.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            String name = dataSnapshot.child("dl" + user.getUid()).child("Family Name").getValue(String.class)
-                                    + " " +
-                                    dataSnapshot.child("dl" + user.getUid()).child("First Name").getValue(String.class);
+                            DeliveryMan deliveryMan = dataSnapshot.getValue(DeliveryMan.class);
+                            String name = Objects.requireNonNull(deliveryMan).getFamily_Name()
+                                    + " " + deliveryMan.getFirst_Name();
                             toolbar.setTitle(name);
-                            if (Objects.equals(dataSnapshot.child("dl" + user.getUid())
-                                    .child("Status").getValue(String.class), "0")) {
-                                activeStatus.setChecked(true);
-                            } else if (Objects.equals(dataSnapshot.child("dl" + user.getUid())
-                                    .child("Status").getValue(String.class), "1")) {
-                                activeStatus.setEnabled(false);
-                                activeStatus.setText(getString(R.string.occupied));
-                            } else if (Objects.equals(dataSnapshot.child("dl" + user.getUid())
-                                    .child("Status").getValue(String.class), "2")) {
-                                activeStatus.setChecked(false);
+                            switch (deliveryMan.getState()) {
+                                case "0":
+                                    activeStatus.setChecked(true);
+                                    break;
+                                case "1":
+                                    activeStatus.setEnabled(false);
+                                    activeStatus.setText(getString(R.string.occupied));
+                                    break;
+                                case "2":
+                                    activeStatus.setChecked(false);
+                                    break;
                             }
                         }
 
@@ -127,6 +128,19 @@ public class DeliveryManActivity extends AppCompatActivity {
                 }
             }
         };
+    }
+
+    public int contains(String s, ArrayList<Prescription> prescriptions) {
+        int b = prescriptions.size();
+        for (int i = 0; i < prescriptions.size(); i++) {
+            if (prescriptions.get(i).getId().equals(s)) {
+                b = i;
+                break;
+            } else {
+                i++;
+            }
+        }
+        return b;
     }
 
     @Override
@@ -141,26 +155,9 @@ public class DeliveryManActivity extends AppCompatActivity {
         auth.removeAuthStateListener(stateListener);
     }
 
+    class MissionAdapter extends ArrayAdapter<Prescription> {
 
-    class Mission {
-        String orderID;
-        String clientID;
-        String pharmacyID;
-        String latitude;
-        String langitude;
-
-        Mission(String orderID, String clientID, String pharmacyID, String latitude, String langitude) {
-            this.orderID = orderID;
-            this.clientID = clientID;
-            this.pharmacyID = pharmacyID;
-            this.latitude = latitude;
-            this.langitude = langitude;
-        }
-    }
-
-    class MissionAdapter extends ArrayAdapter<Mission> {
-
-        public MissionAdapter(@NonNull Context context, @NonNull ArrayList<Mission> missions) {
+        public MissionAdapter(@NonNull Context context, @NonNull ArrayList<Prescription> missions) {
             super(context, 0, missions);
         }
 
@@ -172,8 +169,8 @@ public class DeliveryManActivity extends AppCompatActivity {
                 view = LayoutInflater.from(getContext()).inflate(R.layout.order, parent, false);
             TextView ph_name = view.findViewById(R.id.m_ph_name);
             TextView cl_name = view.findViewById(R.id.m_cl_name);
-            ph_name.setText(Objects.requireNonNull(getItem(position)).pharmacyID);
-            cl_name.setText(Objects.requireNonNull(getItem(position)).clientID);
+            ph_name.setText(Objects.requireNonNull(getItem(position)).getPharmacy_ID());
+            cl_name.setText(Objects.requireNonNull(getItem(position)).getClient_ID());
             return view;
         }
     }

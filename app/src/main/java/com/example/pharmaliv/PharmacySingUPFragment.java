@@ -94,40 +94,6 @@ public class PharmacySingUPFragment extends Fragment {
         mProgressDialog = new ProgressDialog(getContext());
     }
 
-    public void signUp() {
-        mFirebaseAuth.createUserWithEmailAndPassword(editTextEmail.getText().toString(), editTextPassword.getText().toString())
-                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        mProgressDialog.dismiss();
-                        if (task.isSuccessful()) {
-                            mFirebaseUser = mFirebaseAuth.getCurrentUser();
-                            if (mFirebaseUser != null) {
-                                Pharmacy pharmacy = new Pharmacy(
-                                        mFirebaseUser.getUid(),
-                                        editTextPhName.getText().toString(),
-                                        Double.parseDouble(editTextPhLat.getText().toString()),
-                                        Double.parseDouble(editTextPhLng.getText().toString()),
-                                        editTextPhone.getText().toString());
-                                mReference.child("ph" + mFirebaseUser.getUid()).child("Name")
-                                        .setValue(pharmacy.getName());
-                                mReference.child("ph" + mFirebaseUser.getUid()).child("Latitude")
-                                        .setValue(pharmacy.getLatitude());
-                                mReference.child("ph" + mFirebaseUser.getUid()).child("Longitude")
-                                        .setValue(pharmacy.getLongitude());
-                                mReference.child("ph" + mFirebaseUser.getUid()).child("Phone")
-                                        .setValue(pharmacy.getPhone());
-                                mReference.child("ph" + mFirebaseUser.getUid()).child("Login ID")
-                                        .setValue(pharmacy.getLoginID());
-                                Toast.makeText(getContext(), getString(R.string.sing_up_successful), Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(getContext(), PharmacyActivity.class));
-                            }
-                        } else {
-                            Toast.makeText(getContext(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-    }
 
     public boolean isValidEmail() {
         return Patterns.EMAIL_ADDRESS.matcher(editTextEmail.getText()).matches();
@@ -144,9 +110,35 @@ public class PharmacySingUPFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == Activity.RESULT_OK){
+        if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
             editTextPhLat.setText(String.valueOf(data.getDoubleExtra("latitude", 0)));
             editTextPhLng.setText(String.valueOf(data.getDoubleExtra("longitude", 0)));
         }
+    }
+
+    public void signUp() {
+        mFirebaseAuth.createUserWithEmailAndPassword(editTextEmail.getText().toString(), editTextPassword.getText().toString())
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        mProgressDialog.dismiss();
+                        if (task.isSuccessful()) {
+                            mFirebaseUser = mFirebaseAuth.getCurrentUser();
+                            if (mFirebaseUser != null) {
+                                Pharmacy pharmacy = new Pharmacy(
+                                        mFirebaseUser.getUid(),
+                                        editTextPhName.getText().toString(),
+                                        Double.parseDouble(editTextPhLat.getText().toString()),
+                                        Double.parseDouble(editTextPhLng.getText().toString()),
+                                        editTextPhone.getText().toString());
+                                mReference.child("ph" + mFirebaseUser.getUid()).setValue(pharmacy);
+                                Toast.makeText(getContext(), getString(R.string.sing_up_successful), Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(getContext(), PharmacyActivity.class));
+                            }
+                        } else {
+                            Toast.makeText(getContext(), Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 }

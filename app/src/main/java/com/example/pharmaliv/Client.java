@@ -2,26 +2,30 @@ package com.example.pharmaliv;
 
 public class Client extends Person {
 
-    private String loginID;
+    private String login_ID;
 
-    public Client(String familyName, String firstName, String phone, String loginID) {
-        super(familyName, firstName, phone);
-        this.loginID = loginID;
+    public Client(String loginID, String firstName, String familyName, String phone) {
+        super(firstName, familyName, phone);
+        this.login_ID = loginID;
     }
 
-    public String getFamilyName() {
-        return super.getFamilyName();
+    public Client() {
+        super();
     }
 
-    public String getFirstName() {
-        return super.getFirstName();
+    public String getFamily_Name() {
+        return super.getFamily_Name();
+    }
+
+    public String getFirst_Name() {
+        return super.getFirst_Name();
     }
 
     public String getPhone() {
         return super.getPhone();
     }
 
-    public String getLoginID() {
-        return loginID;
+    public String getLogin_ID() {
+        return login_ID;
     }
 }

@@ -23,8 +23,12 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning"
         tools:remove="android:appComponentFactory">
-        <activity android:name=".ClientRequestActivity"></activity>
-        <activity android:name=".DeliveryMenActivity" />
+        <activity
+            android:name=".ClientRequestActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".DeliveryMenActivity"
+            android:label="@string/delivery_men_list" />
         <activity android:name=".ForgotPasswordActivity" />
 
         <service android:name=".GPSService" />
@@ -78,7 +82,7 @@
         <activity
             android:name=".ClientActivity"
             android:label="@string/home"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/AppTheme" />

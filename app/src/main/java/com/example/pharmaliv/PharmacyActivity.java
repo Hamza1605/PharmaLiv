@@ -63,29 +63,7 @@ public class PharmacyActivity extends AppCompatActivity {
         addMedication.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final EditText editText = new EditText(PharmacyActivity.this);
-                AlertDialog dialog = new AlertDialog.Builder(PharmacyActivity.this)
-                        .setTitle(getString(R.string.add_medication))
-                        .setView(editText)
-                        .setPositiveButton(getString(R.string.add_medication), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                DatabaseReference medRef = FirebaseDatabase.getInstance().getReference().child("Medication");
-                                if (!TextUtils.isEmpty(editText.getText().toString())) {
-                                    medRef.push().child("Name").setValue(editText.getText().toString());
-                                } else {
-                                    editText.setError("");
-                                }
-                            }
-                        })
-                        .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                            }
-                        })
-                        .create();
-                dialog.show();
+                addMedication();
             }
         });
 
@@ -98,9 +76,8 @@ public class PharmacyActivity extends AppCompatActivity {
                     reference.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            String name = dataSnapshot.child("ph" + user.getUid()).child("Name").getValue(String.class);
-                            //    bundle.putDouble("Latitude", Double.parseDouble(Objects.requireNonNull(dataSnapshot.child("Latitude").getValue(String.class))));
-                            // bundle.putDouble("Longitude", Double.parseDouble(Objects.requireNonNull(dataSnapshot.child("Longitude").getValue(String.class))));
+                            Pharmacy pharmacy = dataSnapshot.child("ph" + user.getUid()).getValue(Pharmacy.class);
+                            String name = pharmacy.getName();
                             toolbar.setTitle(name);
                         }
 
@@ -116,6 +93,32 @@ public class PharmacyActivity extends AppCompatActivity {
             }
         };
 
+    }
+
+    private void addMedication() {
+        final EditText editText = new EditText(PharmacyActivity.this);
+        AlertDialog dialog = new AlertDialog.Builder(PharmacyActivity.this)
+                .setTitle(getString(R.string.add_medication))
+                .setView(editText)
+                .setPositiveButton(getString(R.string.add_medication), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        DatabaseReference medRef = FirebaseDatabase.getInstance().getReference().child("Medication");
+                        if (!TextUtils.isEmpty(editText.getText().toString())) {
+                            medRef.push().child("Name").setValue(editText.getText().toString());
+                        } else {
+                            editText.setError("");
+                        }
+                    }
+                })
+                .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .create();
+        dialog.show();
     }
 
     @Override

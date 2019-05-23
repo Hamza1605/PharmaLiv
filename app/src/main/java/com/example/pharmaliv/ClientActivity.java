@@ -22,14 +22,16 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Objects;
+
 public class ClientActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    FirebaseUser user;
-    TextView userName;
-    TextView userEmail;
-    FirebaseAuth.AuthStateListener stateListener;
-    FirebaseAuth auth;
+    private FirebaseUser user;
+    private Client client;
+    private TextView userName, userEmail;
+    private FirebaseAuth.AuthStateListener stateListener;
+    private FirebaseAuth auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,10 +63,9 @@ public class ClientActivity extends AppCompatActivity
                     reference.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            String name = dataSnapshot.child("cl"+user.getUid()).child("Family Name").getValue(String.class)
-                            + " " +
-                            dataSnapshot.child("cl"+user.getUid()).child("First Name").getValue(String.class);
-                            userName.setText(name);
+                            client = dataSnapshot.child("cl" + user.getUid()).getValue(Client.class);
+                            String s = Objects.requireNonNull(client).getFamily_Name() + " " + client.getFirst_Name();
+                            userName.setText(s);
                         }
                         @Override
                         public void onCancelled(@NonNull DatabaseError databaseError) {

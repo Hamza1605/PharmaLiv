@@ -88,4 +88,8 @@
     <string name="home">Home</string>
     <string name="set_address">Set Address</string>
     <string name="address_def">Address is defined</string>
+    <string name="edit">Edit</string>
+    <string name="ok">\"Ok\"</string>
+    <string name="select_action">Please select action.</string>
+    <string name="delete">Delete</string>
 </resources>

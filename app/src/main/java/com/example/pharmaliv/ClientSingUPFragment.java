@@ -53,53 +53,32 @@ public class ClientSingUPFragment extends Fragment {
         buttonSingUP.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if ((TextUtils.isEmpty(editTextFirstName.getText())) || (TextUtils.isEmpty(editTextFamilyName.getText()))) {
+                if ((TextUtils.isEmpty(editTextFirstName.getText()))
+                        || (TextUtils.isEmpty(editTextFamilyName.getText()))) {
                     editTextFirstName.setError(getString(R.string.no_first_name));
                     editTextFamilyName.setError(getString(R.string.no_family_name));
                     return;
-                } else if ((!isValidEmail()) || (TextUtils.isEmpty(editTextEmail.getText()))) {
+                } else if ((!isValidEmail())
+                        || (TextUtils.isEmpty(editTextEmail.getText()))) {
                     editTextEmail.setError(getString(R.string.error_invalid_email));
                     return;
                 } else if (TextUtils.isEmpty(editTextPassword.getText())) {
                     editTextPassword.setError(getString(R.string.error_invalid_password));
                     return;
-                } else if ((!confirmedPassword()) || (TextUtils.isEmpty(editTextConfirmPassword.getText()))) {
+                } else if ((!confirmedPassword())
+                        || (TextUtils.isEmpty(editTextConfirmPassword.getText()))) {
                     editTextConfirmPassword.setError(getString(R.string.password_not_confirmed));
                     return;
-                } else if ((!isValidPhone()) || (TextUtils.isEmpty(editTextPhone.getText()))) {
+                } else if ((!isValidPhone())
+                        || (TextUtils.isEmpty(editTextPhone.getText()))) {
                     editTextPhone.setError(getString(R.string.error_invalid_phone));
                     return;
                 }
                 mProgressDialog.setMessage(getString(R.string.singing_up));
                 mProgressDialog.setIndeterminate(true);
                 mProgressDialog.show();
-                mFirebaseAuth.createUserWithEmailAndPassword(editTextEmail.getText().toString(), editTextPassword.getText().toString())
-                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                mProgressDialog.dismiss();
-                                if (task.isSuccessful()) {
-                                    mFirebaseUser = mFirebaseAuth.getCurrentUser();
-                                    if (mFirebaseUser != null) {
-                                        mReference.child("cl" + mFirebaseUser.getUid()).child("First Name")
-                                                .setValue(editTextFirstName.getText().toString());
-                                        mReference.child("cl" + mFirebaseUser.getUid()).child("Family Name")
-                                                .setValue(editTextFamilyName.getText().toString());
-                                        mReference.child("cl" + mFirebaseUser.getUid()).child("Phone")
-                                                .setValue(editTextPhone.getText().toString());
-                                        mReference.child("cl" + mFirebaseUser.getUid()).child("Login ID")
-                                                .setValue(mFirebaseUser.getUid());
-                                        Toast.makeText(getContext(), getString(R.string.sing_up_successful),
-                                                Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(getContext(), ClientActivity.class));
-                                    }
-                                } else {
-                                    Toast.makeText(getContext(),
-                                            Objects.requireNonNull(task.getException()).getMessage(),
-                                            Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
+
+                signUP();
             }
         });
         return view;
@@ -121,5 +100,32 @@ public class ClientSingUPFragment extends Fragment {
 
     public boolean isValidPhone() {
         return Patterns.PHONE.matcher(editTextPhone.getText()).matches();
+    }
+
+    public void signUP() {
+        mFirebaseAuth.createUserWithEmailAndPassword(editTextEmail.getText().toString(), editTextPassword.getText().toString())
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        mProgressDialog.dismiss();
+                        if (task.isSuccessful()) {
+                            mFirebaseUser = mFirebaseAuth.getCurrentUser();
+                            if (mFirebaseUser != null) {
+                                Client client = new Client(mFirebaseUser.getUid(),
+                                        editTextFirstName.getText().toString(),
+                                        editTextFamilyName.getText().toString(),
+                                        editTextPhone.getText().toString());
+                                mReference.child("cl" + mFirebaseUser.getUid()).setValue(client);
+                                Toast.makeText(getContext(), getString(R.string.sing_up_successful),
+                                        Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(getContext(), ClientActivity.class));
+                            }
+                        } else {
+                            Toast.makeText(getContext(),
+                                    Objects.requireNonNull(task.getException()).getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 }
