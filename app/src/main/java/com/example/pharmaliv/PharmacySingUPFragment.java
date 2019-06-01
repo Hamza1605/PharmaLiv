@@ -82,7 +82,7 @@ public class PharmacySingUPFragment extends Fragment {
         buttonLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivityForResult(new Intent(getContext(), MapsActivity.class), 1);
+                startActivityForResult(new Intent(getContext(), MapsActivity.class).putExtra("send", "1"), 1);
             }
         });
         return view;
@@ -93,7 +93,6 @@ public class PharmacySingUPFragment extends Fragment {
         mReference = FirebaseDatabase.getInstance().getReference().child("Pharmacy");
         mProgressDialog = new ProgressDialog(getContext());
     }
-
 
     public boolean isValidEmail() {
         return Patterns.EMAIL_ADDRESS.matcher(editTextEmail.getText()).matches();

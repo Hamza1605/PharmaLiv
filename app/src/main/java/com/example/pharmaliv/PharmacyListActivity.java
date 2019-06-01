@@ -1,18 +1,12 @@
 package com.example.pharmaliv;
 
-import android.Manifest;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
@@ -22,7 +16,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -33,26 +26,39 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import mumayank.com.airlocationlibrary.AirLocation;
+
 public class PharmacyListActivity extends AppCompatActivity {
 
     private ArrayList<Pharmacy> pharmacyList;
     private PharmacyAdapter adapter;
-    private Location clientLocation = null;
-    private BroadcastReceiver broadcastReceiver;
+    private Location clientLocation;
+    private AirLocation airLocation;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pharmacy_list);
 
-        if (!runtimePermissions())
-            startService(new Intent(PharmacyListActivity.this, GPSService.class));
+        airLocation = new AirLocation(this, true,
+                true, new AirLocation.Callbacks() {
+            @Override
+            public void onSuccess(@NonNull Location location) {
+                clientLocation = location;
+            }
 
+            @Override
+            public void onFailed(@NonNull AirLocation.LocationFailedEnum locationFailedEnum) {
+
+            }
+        });
 
         pharmacyList = new ArrayList<>();
         adapter = new PharmacyAdapter(this, pharmacyList, clientLocation);
         ListView listViewPharmacy = findViewById(R.id.pharmacies_list);
         listViewPharmacy.setAdapter(adapter);
+
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("Pharmacy");
         reference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -68,6 +74,7 @@ public class PharmacyListActivity extends AppCompatActivity {
 
             }
         });
+
         listViewPharmacy.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
@@ -92,66 +99,24 @@ public class PharmacyListActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (!pharmacyList.isEmpty()) {
-            if (broadcastReceiver == null) {
-                broadcastReceiver = new BroadcastReceiver() {
-                    @Override
-                    public void onReceive(Context context, Intent intent) {
-                        clientLocation.setLatitude(intent.getDoubleExtra("lat", 0));
-                        clientLocation.setLongitude(intent.getDoubleExtra("lng", 0));
-                        adapter.notifyDataSetChanged();
-                    }
-                };
-            }
-            registerReceiver(broadcastReceiver, new IntentFilter("location updates"));
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        stopService(new Intent(PharmacyListActivity.this, GPSService.class));
-        if (broadcastReceiver != null)
-            unregisterReceiver(broadcastReceiver);
-    }
-
-    private boolean runtimePermissions() {
-        if (Build.VERSION.SDK_INT >= 23 &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                    100);
-            return true;
-        }
-        return false;
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 100) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                startService(new Intent(PharmacyListActivity.this, GPSService.class));
-            } else {
-                runtimePermissions();
-            }
-        }
+        airLocation.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
-
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        airLocation.onActivityResult(requestCode, resultCode, data);
+    }
 
     class PharmacyAdapter extends ArrayAdapter<Pharmacy> {
 
-        private Location location;
 
         PharmacyAdapter(@NonNull Context context, ArrayList<Pharmacy> pharmacies, Location location) {
             super(context, 0, pharmacies);
-            this.location = location;
         }
 
         @NonNull
@@ -165,8 +130,8 @@ public class PharmacyListActivity extends AppCompatActivity {
             TextView pharmacy_distance = view.findViewById(R.id.phrow_distance);
 
             float[] v = new float[1];
-            if (location != null) {
-                Location.distanceBetween(location.getLatitude(), location.getLongitude(),
+            if (clientLocation != null) {
+                Location.distanceBetween(clientLocation.getLatitude(), clientLocation.getLongitude(),
                         Objects.requireNonNull(getItem(position)).getLatitude(),
                         Objects.requireNonNull(getItem(position)).getLongitude(), v);
             }

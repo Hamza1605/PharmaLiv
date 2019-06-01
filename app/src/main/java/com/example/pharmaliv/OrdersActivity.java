@@ -28,12 +28,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
 import java.util.Objects;
 
 
@@ -58,17 +54,18 @@ public class OrdersActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     Prescription prescription = ds.getValue(Prescription.class);
-                    if ((Objects.equals(ds.child("client_ID").getValue(String.class), Uid))
-                            && (!Objects.equals(Objects.requireNonNull(ds.child("state").getValue()).toString(), "8"))) {
-                        if (contains(ds.getKey(), orders) != orders.size()) {
-                            orders.set(contains(ds.getKey(), orders), prescription);
-                        } else {
-                            orders.add(prescription);
+                    if (Objects.equals(Objects.requireNonNull(prescription).getClient_ID(), Uid)) {
+                        if (!Objects.equals(prescription.getState(), "4")) {
+                            if (contains(prescription.getId(), orders) != orders.size()) {
+                                orders.set(contains(ds.getKey(), orders), prescription);
+                            } else {
+                                orders.add(prescription);
+                            }
+                            adapter.notifyDataSetChanged();
+                        } else if (contains(ds.getKey(), orders) != orders.size()) {
+                            orders.remove(contains(ds.getKey(), orders));
+                            adapter.notifyDataSetChanged();
                         }
-                        adapter.notifyDataSetChanged();
-                    } else if (contains(ds.getKey(), orders) != orders.size()) {
-                        orders.remove(contains(ds.getKey(), orders));
-                        adapter.notifyDataSetChanged();
                     }
                 }
             }
@@ -123,12 +120,12 @@ public class OrdersActivity extends AppCompatActivity {
                     @Override
                     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                         String s1 = null;
-                        if (monthOfYear < 10 && dayOfMonth < 10)
-                            s1 = year + "-0" + monthOfYear + "-0" + dayOfMonth;
-                        else if (monthOfYear < 10)
-                            s1 = year + "-0" + monthOfYear + "-" + dayOfMonth;
+                        if (monthOfYear < 9 && dayOfMonth < 10)
+                            s1 = year + "-0" + (monthOfYear + 1) + "-0" + dayOfMonth;
+                        else if (monthOfYear < 9)
+                            s1 = year + "-0" + (monthOfYear + 1) + "-" + dayOfMonth;
                         else if (dayOfMonth < 10)
-                            s1 = year + "-0" + monthOfYear + "-" + dayOfMonth;
+                            s1 = year + "-0" + (monthOfYear + 1) + "-" + dayOfMonth;
                         reference.child(s).child("delivery_Date").setValue(s1);
                     }
                 }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
@@ -160,14 +157,14 @@ public class OrdersActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             s = orders.get(position).getId();
                             startActivityForResult(new Intent(OrdersActivity.this,
-                                    MapsActivity.class), 2);
+                                    MapsActivity.class).putExtra("send", "2"), 2);
                         }
                     })
                     .setNegativeButton(getString(R.string.decline),
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-
+                                    reference.child(s).child("state").setValue("4");
                                 }
                             });
             builder.show();
@@ -221,6 +218,17 @@ public class OrdersActivity extends AppCompatActivity {
                     break;
                 case "2":
                     state.setText((R.string.declined));
+                    break;
+                case "3":
+                    state.setText(R.string.waiting_reply);
+                    break;
+                case "4":
+                    state.setText(R.string.rejected_by_you);
+                case "5":
+                    state.setText(R.string.ph_ask);
+                    break;
+                case "6":
+                    state.setText(R.string.waiting_delivery);
                     break;
             }
             return view;

@@ -58,7 +58,7 @@ public class SignINActivity extends AppCompatActivity {
                             } else if (dataSnapshot.child("Pharmacy").hasChild("ph" + user.getUid())) {
                                 startActivity(new Intent(SignINActivity.this, PharmacyActivity.class));
                             } else if (dataSnapshot.child("Delivery Man").hasChild("dl" + user.getUid())) {
-                                startActivity(new Intent(SignINActivity.this, ClientActivity.class));
+                                startActivity(new Intent(SignINActivity.this, DeliveryManActivity.class));
                             }
                         }
 
@@ -67,7 +67,6 @@ public class SignINActivity extends AppCompatActivity {
 
                         }
                     });
-                    finish();
                 }
             }
         };
@@ -123,6 +122,12 @@ public class SignINActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         auth.removeAuthStateListener(stateListener);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        finish();
     }
 
     private void initializeUI() {

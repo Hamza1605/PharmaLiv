@@ -1,14 +1,13 @@
 package com.example.pharmaliv;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,11 +22,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 public class DeliveryMenActivity extends AppCompatActivity {
@@ -38,10 +33,10 @@ public class DeliveryMenActivity extends AppCompatActivity {
         setContentView(R.layout.activity_delivery_men);
         final ArrayList<DeliveryMan> deliveryMen = new ArrayList<>();
         final DeliveryManAdapter adapter = new DeliveryManAdapter(Objects.requireNonNull(getApplicationContext()), deliveryMen);
-        ListView listView = findViewById(R.id.dl_list);
+        ListView listView = findViewById(R.id.list_dl);
         listView.setAdapter(adapter);
-        DatabaseReference referenceDelivery = FirebaseDatabase.getInstance().getReference().child("Delivery Man");
 
+        DatabaseReference referenceDelivery = FirebaseDatabase.getInstance().getReference().child("Delivery Man");
         referenceDelivery.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -62,42 +57,47 @@ public class DeliveryMenActivity extends AppCompatActivity {
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
                 if (getIntent().getIntExtra("send", 0) == 1) {
-                    Intent intent = DeliveryMenActivity.this.getIntent();
-                    intent.putExtra("Delivery Man", "dl" + deliveryMen.get(position).getLogin_ID());
-                    DeliveryMenActivity.this.setResult(RESULT_OK, intent);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(DeliveryMenActivity.this)
+                            .setTitle(R.string.confirm)
+                            .setPositiveButton(R.string.select, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent intent = DeliveryMenActivity.this.getIntent();
+                                    intent.putExtra("Delivery Man", "dl" + deliveryMen.get(position).getLogin_ID());
+                                    DeliveryMenActivity.this.setResult(RESULT_OK, intent);
+                                    finish();
+                                }
+                            })
+                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                }
+                            });
+                    builder.show();
                 }
             }
         });
     }
 
-
-
-
-
     class DeliveryManAdapter extends ArrayAdapter<DeliveryMan> {
-
-        private Context context;
 
         DeliveryManAdapter(@NonNull Context context, ArrayList<DeliveryMan> deliveryMen) {
             super(context, 0, deliveryMen);
-            this.context = context;
         }
 
         @NonNull
         @Override
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-
             View view = convertView;
             if (view == null) {
-                view = LayoutInflater.from(getContext()).inflate(android.R.layout.simple_list_item_2, parent, false);
+                view = LayoutInflater.from(getContext()).inflate(android.R.layout.simple_list_item_2,
+                        parent, false);
                 TextView dlName = view.findViewById(android.R.id.text1);
-                TextView dlLocation = view.findViewById(android.R.id.text2);
                 String s = Objects.requireNonNull(getItem(position)).getFamily_Name() + " " +
                         Objects.requireNonNull(getItem(position)).getFirst_Name();
                 dlName.setText(s);
-                dlLocation.setText("");
             }
             return view;
         }

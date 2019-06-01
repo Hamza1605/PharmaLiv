@@ -91,5 +91,13 @@
     <string name="edit">Edit</string>
     <string name="ok">\"Ok\"</string>
     <string name="select_action">Please select action.</string>
+    <string name="select">Select</string>
     <string name="delete">Delete</string>
+    <string name="see_address">See Address</string>
+    <string name="waiting_delivery">Waiting for delivery</string>
+    <string name="rejected_by_you">Rejected by you</string>
+    <string name="ph_ask">Pharmacy asking delivery men</string>
+    <string name="delivered">Delivered</string>
+    <string name="not_delivered">Not Delivered</string>
+    <string name="make_call">Make Call</string>
 </resources>

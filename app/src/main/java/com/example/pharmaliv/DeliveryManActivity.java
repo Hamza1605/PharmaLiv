@@ -2,12 +2,14 @@ package com.example.pharmaliv;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -40,7 +42,9 @@ public class DeliveryManActivity extends AppCompatActivity {
         setContentView(R.layout.activity_delivery_man);
         final Toolbar toolbar = findViewById(R.id.dltoolbar);
         setSupportActionBar(toolbar);
+
         final DatabaseReference deliveryReference = FirebaseDatabase.getInstance().getReference("Delivery Man");
+
         final Switch activeStatus = findViewById(R.id.active_status);
         activeStatus.setTextOn(getString(R.string.on_hold));
         activeStatus.setTextOff(getString(R.string.out_of_service));
@@ -53,6 +57,7 @@ public class DeliveryManActivity extends AppCompatActivity {
                     deliveryReference.child("dl" + user.getUid()).child("state").setValue("2");
             }
         });
+
         final ArrayList<Prescription> prescriptions = new ArrayList<>();
         final MissionAdapter adapter = new MissionAdapter(DeliveryManActivity.this, prescriptions);
         ListView listView = findViewById(R.id.dlmissions);
@@ -60,11 +65,13 @@ public class DeliveryManActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(DeliveryManActivity.this, MissionFragment.class);
+                Intent intent = new Intent(DeliveryManActivity.this, MissionActivity.class);
+                intent.putExtra("pr", prescriptions.get(position).getId());
                 intent.putExtra("ph", prescriptions.get(position).getPharmacy_ID());
                 intent.putExtra("cl", prescriptions.get(position).getClient_ID());
-
-                intent.putExtra("order", prescriptions.get(position).getId());
+                intent.putExtra("st", prescriptions.get(position).getState());
+                intent.putExtra("lat", Double.parseDouble(prescriptions.get(position).getLatitude()));
+                intent.putExtra("lng", Double.parseDouble(prescriptions.get(position).getLongitude()));
                 startActivity(intent);
             }
         });
@@ -74,14 +81,21 @@ public class DeliveryManActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                    Prescription prescription = ds.getValue(Prescription.class);
-                    if (Objects.requireNonNull(prescription).getDelivery_ID().equals("dl" + user.getUid())) {
-                        if (contains(prescription.getId(), prescriptions) != prescriptions.size()) {
-                            prescriptions.set(contains(prescription.getId(), prescriptions), prescription);
-                        } else {
-                            prescriptions.add(prescription);
+                    if (ds.child("delivery_ID").exists()) {
+                        Prescription prescription = ds.getValue(Prescription.class);
+                        if (Objects.requireNonNull(prescription).getDelivery_ID().equals("dl" + user.getUid())) {
+                            if (prescription.getState().equals("5") || prescription.getState().equals("7")) {
+                                if (contains(prescription.getId(), prescriptions) != prescriptions.size()) {
+                                    prescriptions.set(contains(prescription.getId(), prescriptions), prescription);
+                                } else {
+                                    prescriptions.add(prescription);
+                                }
+                                adapter.notifyDataSetChanged();
+                            } else if (contains(prescription.getId(), prescriptions) != prescriptions.size()) {
+                                prescriptions.remove(contains(prescription.getId(), prescriptions));
+                                adapter.notifyDataSetChanged();
+                            }
                         }
-                        adapter.notifyDataSetChanged();
                     }
                 }
             }
@@ -102,7 +116,8 @@ public class DeliveryManActivity extends AppCompatActivity {
                     reference.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            DeliveryMan deliveryMan = dataSnapshot.getValue(DeliveryMan.class);
+                            DeliveryMan deliveryMan = dataSnapshot.child("dl" + user.getUid())
+                                    .getValue(DeliveryMan.class);
                             String name = Objects.requireNonNull(deliveryMan).getFamily_Name()
                                     + " " + deliveryMan.getFirst_Name();
                             toolbar.setTitle(name);
@@ -125,6 +140,8 @@ public class DeliveryManActivity extends AppCompatActivity {
 
                         }
                     });
+                } else {
+                    startActivity(new Intent(getApplicationContext(), SignINActivity.class));
                 }
             }
         };
@@ -155,10 +172,25 @@ public class DeliveryManActivity extends AppCompatActivity {
         auth.removeAuthStateListener(stateListener);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_sing_up, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_sing_in) {
+            auth.signOut();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     class MissionAdapter extends ArrayAdapter<Prescription> {
 
-        public MissionAdapter(@NonNull Context context, @NonNull ArrayList<Prescription> missions) {
-            super(context, 0, missions);
+        MissionAdapter(@NonNull Context context, @NonNull ArrayList<Prescription> prescriptions) {
+            super(context, 0, prescriptions);
         }
 
         @NonNull
@@ -167,10 +199,42 @@ public class DeliveryManActivity extends AppCompatActivity {
             View view = convertView;
             if (view == null)
                 view = LayoutInflater.from(getContext()).inflate(R.layout.order, parent, false);
-            TextView ph_name = view.findViewById(R.id.m_ph_name);
-            TextView cl_name = view.findViewById(R.id.m_cl_name);
-            ph_name.setText(Objects.requireNonNull(getItem(position)).getPharmacy_ID());
-            cl_name.setText(Objects.requireNonNull(getItem(position)).getClient_ID());
+            final TextView ph_name = view.findViewById(R.id.m_ph_name);
+            final TextView cl_name = view.findViewById(R.id.m_cl_name);
+            TextView datetime = view.findViewById(R.id.m_dl_dt);
+
+            String s = Objects.requireNonNull(getItem(position)).getDelivery_Date()
+                    + " " + Objects.requireNonNull(getItem(position)).getDelivery_Time();
+            datetime.setText(s);
+            DatabaseReference clientReference = FirebaseDatabase.getInstance().getReference("Client")
+                    .child(Objects.requireNonNull(getItem(position)).getClient_ID());
+            clientReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    String s = dataSnapshot.child("family_Name").getValue(String.class) + " " +
+                            dataSnapshot.child("first_Name").getValue(String.class);
+                    cl_name.setText(s);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+            DatabaseReference pharmacyReference = FirebaseDatabase.getInstance().getReference("Pharmacy")
+                    .child(Objects.requireNonNull(getItem(position)).getPharmacy_ID());
+            pharmacyReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    String s = dataSnapshot.child("name").getValue(String.class);
+                    ph_name.setText(s);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
             return view;
         }
     }

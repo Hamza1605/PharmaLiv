@@ -8,11 +8,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
@@ -62,9 +62,11 @@ public class ClientRequestActivity extends AppCompatActivity {
         medicationAdapter = new MedicationAdapter(ClientRequestActivity.this, medications);
         listView.setAdapter(medicationAdapter);
 
-        if ((getIntent().getStringExtra("req_state").equals("3"))) {
+        if (getIntent().getStringExtra("req_state").equals("3")) {
             accept.setText(getString(R.string.select_delivery));
             total.setVisibility(View.GONE);
+        } else if (getIntent().getStringExtra("req_state").equals("5")) {
+            decline.setEnabled(false);
         }
 
         download();
@@ -180,7 +182,6 @@ public class ClientRequestActivity extends AppCompatActivity {
             total.setError(getString(R.string.put_total));
         }
         if ((getIntent().getStringExtra("req_state").equals("3"))) {
-            ordinanceReference.child("state").setValue("5");
             Intent intent = new Intent(ClientRequestActivity.this, DeliveryMenActivity.class);
             intent.putExtra("send", 1);
             startActivityForResult(intent, 1);
@@ -197,7 +198,6 @@ public class ClientRequestActivity extends AppCompatActivity {
                     .setPositiveButton(getString(R.string.set_note), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-
                             if (!TextUtils.isEmpty(editText.getText().toString())) {
                                 ordinanceReference.child("client_Note").setValue(editText.getText().toString());
                             }
@@ -238,8 +238,11 @@ public class ClientRequestActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
-            ordinanceReference.child("Delivery Man").setValue(Objects.requireNonNull(data)
+            ordinanceReference.child("delivery_ID").setValue(Objects.requireNonNull(data)
                     .getStringExtra("Delivery Man"));
+            ordinanceReference.child("state").setValue("5");
+            decline.setEnabled(false);
+            accept.setEnabled(false);
             final EditText editText = new EditText(ClientRequestActivity.this);
             AlertDialog dialog = new AlertDialog.Builder(ClientRequestActivity.this)
                     .setTitle(getString(R.string.set_note))
@@ -247,9 +250,8 @@ public class ClientRequestActivity extends AppCompatActivity {
                     .setPositiveButton(getString(R.string.set_note), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-
                             if (!TextUtils.isEmpty(editText.getText().toString())) {
-                                ordinanceReference.child("Note Delivery Man").setValue(editText.getText().toString());
+                                ordinanceReference.child("deliveryMan_Note").setValue(editText.getText().toString());
                             }
                         }
                     })

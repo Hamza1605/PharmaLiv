@@ -8,10 +8,7 @@
             android:id="@+id/nav_orders"
             android:icon="@drawable/ic_orders"
             android:title="@string/my_orders" />
-        <item
-            android:id="@+id/nav_address"
-            android:icon="@drawable/ic_address"
-            android:title="@string/change_address" />
+
     </group>
 
     <item android:title="@string/communicate">

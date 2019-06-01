@@ -2,10 +2,10 @@ package com.example.pharmaliv;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +13,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -47,17 +46,16 @@ public class ClientsRequestsActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     Prescription prescription = ds.getValue(Prescription.class);
-                    if ((Objects.equals(Objects.requireNonNull(prescription).getPharmacy_ID(), "ph" + user.getUid()))
-                            && ((Objects.equals(prescription.getState(), "0"))
-                            || (Objects.equals(prescription.getState(), "3")))) {
-                        if (contains(ds.getKey(), prescriptions) != prescriptions.size()) {
-                            prescriptions.set(contains(ds.getKey(), prescriptions), prescription);
-                        } else {
-                            prescriptions.add(prescription);
-                        }
-                        requestAdapter.notifyDataSetChanged();
-                    } else {
-                        if (contains(ds.getKey(), prescriptions) != prescriptions.size()) {
+                    if (Objects.equals(Objects.requireNonNull(prescription).getPharmacy_ID(), "ph" + user.getUid())) {
+                        if (Objects.equals(prescription.getState(), "0")
+                                || Objects.equals(prescription.getState(), "3")) {
+                            if (contains(ds.getKey(), prescriptions) != prescriptions.size()) {
+                                prescriptions.set(contains(ds.getKey(), prescriptions), prescription);
+                            } else {
+                                prescriptions.add(prescription);
+                            }
+                            requestAdapter.notifyDataSetChanged();
+                        } else if (contains(ds.getKey(), prescriptions) != prescriptions.size()) {
                             prescriptions.remove(contains(ds.getKey(), prescriptions));
                             requestAdapter.notifyDataSetChanged();
                         }

@@ -11,6 +11,9 @@ public class DeliveryMan extends Person {
         this.state = state;
     }
 
+    public DeliveryMan() {
+    }
+
     public String getFamily_Name() {
         return super.getFamily_Name();
     }
