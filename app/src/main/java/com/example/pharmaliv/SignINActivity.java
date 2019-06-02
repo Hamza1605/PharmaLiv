@@ -36,6 +36,7 @@ public class SignINActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private FirebaseAuth.AuthStateListener stateListener;
     private FirebaseUser user;
+    private int state = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,10 +56,13 @@ public class SignINActivity extends AppCompatActivity {
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             if (dataSnapshot.child("Client").hasChild("cl" + user.getUid())) {
                                 startActivity(new Intent(SignINActivity.this, ClientActivity.class));
+                                state = 1;
                             } else if (dataSnapshot.child("Pharmacy").hasChild("ph" + user.getUid())) {
                                 startActivity(new Intent(SignINActivity.this, PharmacyActivity.class));
+                                state = 1;
                             } else if (dataSnapshot.child("Delivery Man").hasChild("dl" + user.getUid())) {
                                 startActivity(new Intent(SignINActivity.this, DeliveryManActivity.class));
+                                state = 1;
                             }
                         }
 
@@ -119,15 +123,9 @@ public class SignINActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        auth.removeAuthStateListener(stateListener);
-    }
-
-    @Override
     protected void onPause() {
         super.onPause();
-        finish();
+        auth.removeAuthStateListener(stateListener);
     }
 
     private void initializeUI() {

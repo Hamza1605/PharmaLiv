@@ -80,19 +80,13 @@ public class DeliveryManActivity extends AppCompatActivity {
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                prescriptions.clear();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     if (ds.child("delivery_ID").exists()) {
                         Prescription prescription = ds.getValue(Prescription.class);
                         if (Objects.requireNonNull(prescription).getDelivery_ID().equals("dl" + user.getUid())) {
                             if (prescription.getState().equals("5") || prescription.getState().equals("7")) {
-                                if (contains(prescription.getId(), prescriptions) != prescriptions.size()) {
-                                    prescriptions.set(contains(prescription.getId(), prescriptions), prescription);
-                                } else {
                                     prescriptions.add(prescription);
-                                }
-                                adapter.notifyDataSetChanged();
-                            } else if (contains(prescription.getId(), prescriptions) != prescriptions.size()) {
-                                prescriptions.remove(contains(prescription.getId(), prescriptions));
                                 adapter.notifyDataSetChanged();
                             }
                         }
@@ -201,11 +195,12 @@ public class DeliveryManActivity extends AppCompatActivity {
                 view = LayoutInflater.from(getContext()).inflate(R.layout.order, parent, false);
             final TextView ph_name = view.findViewById(R.id.m_ph_name);
             final TextView cl_name = view.findViewById(R.id.m_cl_name);
-            TextView datetime = view.findViewById(R.id.m_dl_dt);
-
-            String s = Objects.requireNonNull(getItem(position)).getDelivery_Date()
-                    + " " + Objects.requireNonNull(getItem(position)).getDelivery_Time();
-            datetime.setText(s);
+            TextView date = view.findViewById(R.id.m_dl_dt);
+            TextView time = view.findViewById(R.id.m_dl_tm);
+            if (Objects.requireNonNull(getItem(position)).getDelivery_Date() != null)
+                date.setText(Objects.requireNonNull(getItem(position)).getDelivery_Date());
+            if (Objects.requireNonNull(getItem(position)).getDelivery_Time() != null)
+                time.setText(Objects.requireNonNull(getItem(position)).getDelivery_Time());
             DatabaseReference clientReference = FirebaseDatabase.getInstance().getReference("Client")
                     .child(Objects.requireNonNull(getItem(position)).getClient_ID());
             clientReference.addListenerForSingleValueEvent(new ValueEventListener() {

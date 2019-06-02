@@ -30,7 +30,8 @@ public class MissionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_mission);
         final TextView phName = findViewById(R.id.mf_ph_name);
         final TextView clName = findViewById(R.id.mf_cl_name);
-        final TextView datetime = findViewById(R.id.mf_dt);
+        final TextView date = findViewById(R.id.mf_dt);
+        final TextView time = findViewById(R.id.mf_tm);
         final TextView note = findViewById(R.id.mf_note);
         final TextView textView = findViewById(R.id.textView3);
         final Button acc = findViewById(R.id.mf_acc);
@@ -43,9 +44,8 @@ public class MissionActivity extends AppCompatActivity {
         prescriptionReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                String s1 = dataSnapshot.child("delivery_Date").getValue(String.class) + " " +
-                        dataSnapshot.child("delivery_Time").getValue(String.class);
-                datetime.setText(s1);
+                date.setText(dataSnapshot.child("delivery_Date").getValue(String.class));
+                time.setText(dataSnapshot.child("delivery_Time").getValue(String.class));
                 note.setText(dataSnapshot.child("deliveryMan_Note").getValue(String.class));
             }
 
@@ -109,7 +109,7 @@ public class MissionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (getIntent().getStringExtra("st").equals(("5")))
-                    prescriptionReference.child("state").setValue("8");
+                    prescriptionReference.child("state").setValue("5");
                 else if (getIntent().getStringExtra("st").equals(("7")))
                     prescriptionReference.child("state").setValue("10");
                 dec.setEnabled(false);

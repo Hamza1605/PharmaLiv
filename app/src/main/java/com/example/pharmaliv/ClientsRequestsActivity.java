@@ -44,19 +44,15 @@ public class ClientsRequestsActivity extends AppCompatActivity {
         ordinanceReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                prescriptions.clear();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     Prescription prescription = ds.getValue(Prescription.class);
                     if (Objects.equals(Objects.requireNonNull(prescription).getPharmacy_ID(), "ph" + user.getUid())) {
-                        if (Objects.equals(prescription.getState(), "0")
-                                || Objects.equals(prescription.getState(), "3")) {
-                            if (contains(ds.getKey(), prescriptions) != prescriptions.size()) {
-                                prescriptions.set(contains(ds.getKey(), prescriptions), prescription);
-                            } else {
-                                prescriptions.add(prescription);
-                            }
-                            requestAdapter.notifyDataSetChanged();
-                        } else if (contains(ds.getKey(), prescriptions) != prescriptions.size()) {
-                            prescriptions.remove(contains(ds.getKey(), prescriptions));
+                        if ((Objects.equals(prescription.getState(), "0"))
+                                || (Objects.equals(prescription.getState(), "3"))
+                                || (Objects.equals(prescription.getState(), "5"))
+                                || (Objects.equals(prescription.getState(), "7"))) {
+                            prescriptions.add(prescription);
                             requestAdapter.notifyDataSetChanged();
                         }
                     }
@@ -110,7 +106,8 @@ public class ClientsRequestsActivity extends AppCompatActivity {
             TextView date = view.findViewById(R.id.req_date);
             TextView time = view.findViewById(R.id.req_time);
             TextView add = view.findViewById(R.id.req_add);
-            TextView del = view.findViewById(R.id.req_del);
+            TextView del_date = view.findViewById(R.id.req_dt);
+            TextView del_time = view.findViewById(R.id.req_tm);
 
 
             DatabaseReference clientReference = FirebaseDatabase.getInstance().getReference("Client");
@@ -135,14 +132,12 @@ public class ClientsRequestsActivity extends AppCompatActivity {
             time.setText(Objects.requireNonNull(getItem(position)).getSending_Time());
             if (Objects.requireNonNull(getItem(position)).getLatitude() != null &&
                     Objects.requireNonNull(getItem(position)).getLongitude() != null) {
-                add.setVisibility(View.VISIBLE);
                 add.setText(getString(R.string.address_def));
             }
             if (Objects.requireNonNull(getItem(position)).getDelivery_Date() != null &&
                     Objects.requireNonNull(getItem(position)).getDelivery_Date() != null) {
-                del.setVisibility(View.VISIBLE);
-                del.setText(Objects.requireNonNull(getItem(position)).getDelivery_Date() + " " +
-                        Objects.requireNonNull(getItem(position)).getDelivery_Time());
+                del_date.setText(Objects.requireNonNull(getItem(position)).getDelivery_Date());
+                del_time.setText(Objects.requireNonNull(getItem(position)).getDelivery_Time());
             }
             return view;
         }

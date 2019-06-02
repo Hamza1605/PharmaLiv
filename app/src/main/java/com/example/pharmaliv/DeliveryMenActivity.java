@@ -40,6 +40,7 @@ public class DeliveryMenActivity extends AppCompatActivity {
         referenceDelivery.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                deliveryMen.clear();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     DeliveryMan deliveryMan = ds.getValue(DeliveryMan.class);
                     if (Objects.requireNonNull(deliveryMan).getState().equals("0")) {
@@ -92,9 +93,9 @@ public class DeliveryMenActivity extends AppCompatActivity {
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
             View view = convertView;
             if (view == null) {
-                view = LayoutInflater.from(getContext()).inflate(android.R.layout.simple_list_item_2,
+                view = LayoutInflater.from(getContext()).inflate(R.layout.delivery_man,
                         parent, false);
-                TextView dlName = view.findViewById(android.R.id.text1);
+                TextView dlName = view.findViewById(R.id.textView4);
                 String s = Objects.requireNonNull(getItem(position)).getFamily_Name() + " " +
                         Objects.requireNonNull(getItem(position)).getFirst_Name();
                 dlName.setText(s);

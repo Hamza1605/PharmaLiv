@@ -32,11 +32,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Objects;
 
-
 public class OrdersActivity extends AppCompatActivity {
 
     private String s;
-    private DatabaseReference reference;
+    private DatabaseReference prescriptionReference;
     private ArrayList<Prescription> orders;
 
     @Override
@@ -46,27 +45,26 @@ public class OrdersActivity extends AppCompatActivity {
         final String Uid = getIntent().getStringExtra("Uid");
         orders = new ArrayList<>();
         final OrdersAdapter adapter = new OrdersAdapter(this, orders);
-        reference = FirebaseDatabase.getInstance().getReference().child("Prescription");
+        prescriptionReference = FirebaseDatabase.getInstance().getReference().child("Prescription");
         ListView listView = findViewById(R.id.orders_list);
         listView.setAdapter(adapter);
-        reference.addValueEventListener(new ValueEventListener() {
+        prescriptionReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                orders.clear();
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     Prescription prescription = ds.getValue(Prescription.class);
-                    if (Objects.equals(Objects.requireNonNull(prescription).getClient_ID(), Uid)) {
-                        if (!Objects.equals(prescription.getState(), "4")) {
-                            if (contains(prescription.getId(), orders) != orders.size()) {
-                                orders.set(contains(ds.getKey(), orders), prescription);
-                            } else {
-                                orders.add(prescription);
-                            }
-                            adapter.notifyDataSetChanged();
-                        } else if (contains(ds.getKey(), orders) != orders.size()) {
-                            orders.remove(contains(ds.getKey(), orders));
+                    if (Objects.equals(Objects.requireNonNull(prescription).getClient_ID(), Uid))
+                        if ((Objects.equals(prescription.getState(), "0"))
+                                || (Objects.equals(prescription.getState(), "1"))
+                                || (Objects.equals(prescription.getState(), "2"))
+                                || (Objects.equals(prescription.getState(), "3"))
+                                || (Objects.equals(prescription.getState(), "5"))
+                                || (Objects.equals(prescription.getState(), "6"))
+                                || (Objects.equals(prescription.getState(), "7"))) {
+                            orders.add(prescription);
                             adapter.notifyDataSetChanged();
                         }
-                    }
                 }
             }
 
@@ -79,6 +77,7 @@ public class OrdersActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+                s = orders.get(position).getId();
                 setAddress(position);
                 Toast.makeText(getApplicationContext(), orders.get(position).getState(), Toast.LENGTH_LONG).show();
             }
@@ -89,26 +88,13 @@ public class OrdersActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 2 && resultCode == Activity.RESULT_OK) {
-            reference.child(s).child("latitude")
+            prescriptionReference.child(s).child("latitude")
                     .setValue(String.valueOf(Objects.requireNonNull(data).getDoubleExtra("latitude", 0)));
-            reference.child(s).child("longitude")
+            prescriptionReference.child(s).child("longitude")
                     .setValue(String.valueOf(Objects.requireNonNull(data).getDoubleExtra("longitude", 0)));
-            reference.child(s).child("state").setValue("3");
+            prescriptionReference.child(s).child("state").setValue("3");
         }
         setDeliveryDateTime();
-    }
-
-    public int contains(String s, ArrayList<Prescription> orders) {
-        int b = orders.size();
-        for (int i = 0; i < orders.size(); i++) {
-            if (orders.get(i).getId().equals(s)) {
-                b = i;
-                break;
-            } else {
-                i++;
-            }
-        }
-        return b;
     }
 
     public void setDeliveryDateTime() {
@@ -126,7 +112,7 @@ public class OrdersActivity extends AppCompatActivity {
                             s1 = year + "-0" + (monthOfYear + 1) + "-" + dayOfMonth;
                         else if (dayOfMonth < 10)
                             s1 = year + "-0" + (monthOfYear + 1) + "-" + dayOfMonth;
-                        reference.child(s).child("delivery_Date").setValue(s1);
+                        prescriptionReference.child(s).child("delivery_Date").setValue(s1);
                     }
                 }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
         datePickerDialog.show();
@@ -142,7 +128,7 @@ public class OrdersActivity extends AppCompatActivity {
                             s1 = "0" + hourOfDay + ":" + minute;
                         else if (minute < 10)
                             s1 = hourOfDay + ":0" + minute;
-                        reference.child(s).child("delivery_Time").setValue(s1);
+                        prescriptionReference.child(s).child("delivery_Time").setValue(s1);
                     }
                 }, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), true);
         timePickerDialog.show();
@@ -151,11 +137,10 @@ public class OrdersActivity extends AppCompatActivity {
     public void setAddress(final int position) {
         if (orders.get(position).getState().equals("1")) {
             AlertDialog.Builder builder = new AlertDialog.Builder(OrdersActivity.this)
-                    .setTitle("")
+                    .setTitle(getString(R.string.select_action))
                     .setPositiveButton(getString(R.string.set_address), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            s = orders.get(position).getId();
                             startActivityForResult(new Intent(OrdersActivity.this,
                                     MapsActivity.class).putExtra("send", "2"), 2);
                         }
@@ -164,10 +149,13 @@ public class OrdersActivity extends AppCompatActivity {
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    reference.child(s).child("state").setValue("4");
+                                    prescriptionReference.child(s).child("state").setValue("4");
                                 }
                             });
             builder.show();
+        } else if (orders.get(position).getState().equals("2")
+                || orders.get(position).getState().equals("6")) {
+            prescriptionReference.child(s).child("state").setValue("12");
         }
     }
 
@@ -222,12 +210,13 @@ public class OrdersActivity extends AppCompatActivity {
                 case "3":
                     state.setText(R.string.waiting_reply);
                     break;
-                case "4":
-                    state.setText(R.string.rejected_by_you);
                 case "5":
                     state.setText(R.string.ph_ask);
                     break;
                 case "6":
+                    state.setText((R.string.declined));
+                    break;
+                case "7":
                     state.setText(R.string.waiting_delivery);
                     break;
             }

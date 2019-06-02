@@ -1,8 +1,9 @@
 package com.example.pharmaliv;
 
+import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Patterns;
 import android.view.View;
@@ -52,7 +53,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
+                startActivity(new Intent(ForgotPasswordActivity.this, SignINActivity.class));
             }
         });
     }

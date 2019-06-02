@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -13,7 +12,10 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:textAlignment="center"
+        android:background="@drawable/list_design"
         android:textStyle="bold"
+        android:textSize="18sp"
+        android:textColor="@color/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -26,7 +28,8 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
         android:textAlignment="center"
-        android:textStyle="bold"
+        android:textSize="18sp"
+        android:textColor="@color/colorPrimary"
         app:layout_constraintEnd_toStartOf="@+id/ord_time"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ord_ph_name" />
@@ -39,7 +42,8 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:textAlignment="center"
-        android:textStyle="bold"
+        android:textSize="18sp"
+        android:textColor="@color/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/ord_date"
         app:layout_constraintTop_toBottomOf="@+id/ord_ph_name" />
@@ -52,6 +56,8 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:textAlignment="center"
+        android:textSize="18sp"
+        android:textColor="@color/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ord_date" />
@@ -64,6 +70,8 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:textAlignment="center"
+        android:textColor="@color/colorPrimary"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ord_state" />
@@ -77,6 +85,8 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:textAlignment="center"
+        android:textColor="@color/colorPrimary"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
